@@ -29,36 +29,36 @@ import org.apache.http.util.EntityUtils;
  */
 class TaskCommThread extends Thread {
 
-            private final BlockingQueue taskQueue;
+            private final Task task;
             private final HttpScheduler s;
             private final Map<Integer, String[]> jobMap;
             
-            TaskCommThread(BlockingQueue taskQueue, HttpScheduler s, Map<Integer, String[]> jobMap) {
+            TaskCommThread(Task task, HttpScheduler s, Map<Integer, String[]> jobMap) {
                 super();
                 this.s = s;
-                this.taskQueue = taskQueue;
+                this.task = task;
                 this.jobMap = jobMap;
             }
 
             @Override
             public void run() {
-                while (true) {
-                    Task task = null;
-                    try {
-                        task = (Task)taskQueue.take();
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-
-                    try {
-                        // TODO: enforce scheduling policy
-                        task.setResult(s.sendTask("http://localhost:8080/", "1", "sleep 240s"));
-                    } catch (Exception ex) {
-                        Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    String[] resultArray = jobMap.get(task.getJobID());
-                    //resultArray[task.]
+                try {
+                    Thread.sleep(2000L);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                try {
+                    // TODO: enforce scheduling policy
+                    task.setResult(s.sendTask("http://localhost:8080/", String.valueOf( task.getTaskID() ), task.getCommand()));
+                } catch (Exception ex) {
+                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                String[] resultArray = jobMap.get(task.getJobID());
+                resultArray[task.getTaskID()] = task.getResult();
+            }
+        };
+
+
 //                ConnectionReuseStrategy connStrategy = DefaultConnectionReuseStrategy.INSTANCE;
 //                try {
 //                    Future<BasicPoolEntry> future = pool.lease(this.target, null);
@@ -94,8 +94,3 @@ class TaskCommThread extends Thread {
 //                } catch (Exception ex) {
 //                    System.out.println("Request to " + this.target + " failed: " + ex.getMessage());
 //                }
-                
-                
-            }
-
-        };

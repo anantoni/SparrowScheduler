@@ -39,22 +39,23 @@ public class HttpScheduler {
         // TODO code application logic here
         HttpScheduler s = new HttpScheduler();
         Map<Integer, String[]> jobMap = new HashMap<>();
-        jobMap.put(1, new String[100]);
+        jobMap.put(1, new String[1000]);
         //Creating shared object to store requested tasks
         BlockingQueue taskQueue = new LinkedBlockingQueue();
-        for (int taskID = 0; taskID < 100; taskID++) {
-            taskQueue.put(new Task(1,taskID,"sleep 240s"));
-        }
-        
-        ExecutorService executor = Executors.newFixedThreadPool(5);
-        for (int i = 0; i < 100; i++) {
-            TaskCommThread worker = new TaskCommThread(taskQueue, s, jobMap);
+        ExecutorService executor = Executors.newFixedThreadPool(20);
+        for (int taskID = 0; taskID < 1000; taskID++) {
+            Task task = new Task(1, taskID, "sleep 240s");
+            TaskCommThread worker = new TaskCommThread(task, s, jobMap);
             executor.execute(worker);
-          }
-        executor.shutdown();
-        while (!executor.isTerminated()) {
         }
-        System.out.println("Finished all threads");
+        executor.shutdown();
+        while (!executor.isTerminated()) {}
+        
+        System.out.println("Finished all tasks");
+        
+        for (String result : jobMap.get(1) )
+            System.out.println(result);
+        
 //        // For test purposes
 //        for ( int i = 0 ; i < 1000 ; i++ ) {
 //            // sleep for about 2 seconds

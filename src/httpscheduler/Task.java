@@ -38,4 +38,8 @@ public class Task {
         return taskID;
     }
     
+    public String getCommand() {
+        return taskCommand;
+    }
+    
 }
