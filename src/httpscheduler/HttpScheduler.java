@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -34,10 +38,29 @@ public class HttpScheduler {
     public static void main(String[] args) throws Exception{
         // TODO code application logic here
         HttpScheduler s = new HttpScheduler();
+        Map<Integer, String[]> jobMap = new HashMap<>();
+        jobMap.put(1, new String[100]);
+        //Creating shared object to store requested tasks
+        BlockingQueue taskQueue = new LinkedBlockingQueue();
+        for (int taskID = 0; taskID < 100; taskID++) {
+            taskQueue.put(new Task(1,taskID,"sleep 240s"));
+        }
         
-        // For test purposes
-        for ( int i = 0 ; i < 100 ; i++ )
-            s.sendTask( "http://localhost:8080/", "1", "sleep 240s");
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        for (int i = 0; i < 100; i++) {
+            TaskCommThread worker = new TaskCommThread(taskQueue, s, jobMap);
+            executor.execute(worker);
+          }
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+        }
+        System.out.println("Finished all threads");
+//        // For test purposes
+//        for ( int i = 0 ; i < 1000 ; i++ ) {
+//            // sleep for about 2 seconds
+//            Thread.sleep(5000L);
+//            s.sendTask( "http://localhost:8080/", "1", "sleep 240s");
+//        }
     }
     
     public void probe( String workerURL ) throws Exception { 
@@ -54,15 +77,16 @@ public class HttpScheduler {
             probe( workerURL );
     }
     
-    public void sendTask( String workerURL, String jobID, String taskCommand ) throws Exception {
+    public String sendTask( String workerURL, String jobID, String taskCommand ) throws Exception {
         // TODO: handle worker response for task completion
         Map<String, String> postArguments = new HashMap();
         postArguments.put( "job-id", jobID );
         postArguments.put( "task-command", taskCommand );
-        schedulerPost( workerURL, postArguments );
+        String s = schedulerPost( workerURL, postArguments );
+        return s;
     }
     
-    public void schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
+    public String schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             
             HttpPost httpPost = new HttpPost( workerURL );
@@ -80,12 +104,14 @@ public class HttpScheduler {
             try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
                 System.out.println(response2.getStatusLine());
                 HttpEntity entity2 = response2.getEntity();
-                byte[] entityContent = EntityUtils.toByteArray(entity2);
-                String a = new String(entityContent);
-                System.out.println(a);
+                String s = EntityUtils.toString(entity2);
+//                byte[] entityContent = EntityUtils.toByteArray(entity2);
+//                String a = new String(entityContent);
+//                System.out.println(a);
                 // do something useful with the response body
                 // and ensure it is fully consumed
                 EntityUtils.consume(entity2);
+                return s;
             }
         }
     }
