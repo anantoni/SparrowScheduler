@@ -11,9 +11,9 @@ package httpscheduler;
  * @author anantoni
  */
 public class Task {
-    private int jobID = -1;
-    private int taskID = -1;
-    private String taskCommand = "";
+    private final int jobID;
+    private final int taskID;
+    private final String taskCommand;
     private String taskResult;
     
     public Task(int jobID, int taskID, String taskCommand) {

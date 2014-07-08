@@ -6,6 +6,10 @@
 
 package httpscheduler;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,16 +40,28 @@ public class HttpScheduler {
      */
     
     public static void main(String[] args) throws Exception{
-        // TODO code application logic here
-        HttpScheduler s = new HttpScheduler();
+        
+        ArrayList<String> workerList = new ArrayList<>();
+        try(BufferedReader br = new BufferedReader(new FileReader( "config\\workers.conf" ))) {
+            for(String line; (line = br.readLine()) != null; ) {
+                workerList.add(line);
+            }
+        }
+        
+        // Initialize worker manager
+        WorkerManager workerManager = new WorkerManager(workerList);
+        
+        // Set random scheduling policy
+        SchedulingPolicy policy = new RandomSchedulingPolicy(workerManager);
+        String workerURL = policy.selectWorker();
+        
         Map<Integer, String[]> jobMap = new HashMap<>();
         jobMap.put(1, new String[1000]);
-        //Creating shared object to store requested tasks
-        BlockingQueue taskQueue = new LinkedBlockingQueue();
+
         ExecutorService executor = Executors.newFixedThreadPool(20);
         for (int taskID = 0; taskID < 1000; taskID++) {
             Task task = new Task(1, taskID, "sleep 240s");
-            TaskCommThread worker = new TaskCommThread(task, s, jobMap);
+            TaskCommThread worker = new TaskCommThread(task, jobMap);
             executor.execute(worker);
         }
         executor.shutdown();
@@ -64,57 +80,6 @@ public class HttpScheduler {
 //        }
     }
     
-    public void probe( String workerURL ) throws Exception { 
-        // TODO: handle probe result
-        
-        Map<String, String> postArguments = new HashMap();
-        postArguments.put( "probe", "yes");
-        schedulerPost( workerURL, postArguments );
-    }
     
-    public void multiProbe( List<String> workersList ) throws Exception {
-        // TODO: handle multiprobe result
-        for ( String workerURL : workersList ) 
-            probe( workerURL );
-    }
-    
-    public String sendTask( String workerURL, String jobID, String taskCommand ) throws Exception {
-        // TODO: handle worker response for task completion
-        Map<String, String> postArguments = new HashMap();
-        postArguments.put( "job-id", jobID );
-        postArguments.put( "task-command", taskCommand );
-        String s = schedulerPost( workerURL, postArguments );
-        return s;
-    }
-    
-    public String schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
-        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            
-            HttpPost httpPost = new HttpPost( workerURL );
-            List <NameValuePair> nvps = new ArrayList <>();
-            postArguments.keySet().stream().forEach((key) -> { 
-                nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
-            });
-            //for ( String key : postArguments.keySet() ) 
-            //nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
-            
-            //nvps.add(new BasicNameValuePair("username", "vip"));
-            //nvps.add(new BasicNameValuePair("password", "secret"));
-            httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-            
-            try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
-                System.out.println(response2.getStatusLine());
-                HttpEntity entity2 = response2.getEntity();
-                String s = EntityUtils.toString(entity2);
-//                byte[] entityContent = EntityUtils.toByteArray(entity2);
-//                String a = new String(entityContent);
-//                System.out.println(a);
-                // do something useful with the response body
-                // and ensure it is fully consumed
-                EntityUtils.consume(entity2);
-                return s;
-            }
-        }
-    }
     
 }
