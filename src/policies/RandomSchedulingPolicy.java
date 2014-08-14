@@ -4,8 +4,9 @@
  * and open the template in the editor.
  */
 
-package httpscheduler;
+package policies;
 
+import httpscheduler.WorkerManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ import java.util.Random;
 public class RandomSchedulingPolicy implements SchedulingPolicy {
     private WorkerManager workerManager = null;
     
-    RandomSchedulingPolicy(WorkerManager workerManager) {
+    public RandomSchedulingPolicy(WorkerManager workerManager) {
         this.workerManager = workerManager;
     }
             

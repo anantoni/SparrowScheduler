@@ -6,27 +6,26 @@
 
 package httpscheduler;
 
+import policies.*;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLServerSocketFactory;
+import org.apache.http.protocol.HttpProcessor;
+import org.apache.http.protocol.HttpProcessorBuilder;
+import org.apache.http.protocol.HttpService;
+import org.apache.http.protocol.ResponseConnControl;
+import org.apache.http.protocol.ResponseContent;
+import org.apache.http.protocol.ResponseDate;
+import org.apache.http.protocol.ResponseServer;
+import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 
 /**
  *
@@ -41,8 +40,10 @@ public class HttpScheduler {
     
     public static void main(String[] args) throws Exception{
         
+        int fixedExecutorSize = 4;
+        
         ArrayList<String> workerList = new ArrayList<>();
-        try(BufferedReader br = new BufferedReader(new FileReader( "config\\workers.conf" ))) {
+        try(BufferedReader br = new BufferedReader(new FileReader( "./config/workers.conf" ))) {
             for(String line; (line = br.readLine()) != null; ) {
                 workerList.add(line);
             }
@@ -56,16 +57,55 @@ public class HttpScheduler {
         String workerURL = policy.selectWorker();
         
         Map<Integer, String[]> jobMap = new HashMap<>();
-        jobMap.put(1, new String[1000]);
+        //jobMap.put(1, new String[1000]);
+        
+        //Creating fixed size executor
+        ThreadPoolExecutor taskCommExecutor = new ThreadPoolExecutor(fixedExecutorSize, fixedExecutorSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
-        ExecutorService executor = Executors.newFixedThreadPool(20);
-        for (int taskID = 0; taskID < 1000; taskID++) {
-            Task task = new Task(1, taskID, "sleep 240s");
-            TaskCommThread worker = new TaskCommThread(task, jobMap);
-            executor.execute(worker);
-        }
-        executor.shutdown();
-        while (!executor.isTerminated()) {}
+        int port = 8080;
+
+        // Set up the HTTP protocol processor
+        HttpProcessor httpproc = HttpProcessorBuilder.create()
+                .add(new ResponseDate())
+                .add(new ResponseServer("Test/1.1"))
+                .add(new ResponseContent())
+                .add(new ResponseConnControl()).build();
+
+        // Set up request handlers
+        UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
+        reqistry.register("*", new RequestHandler(taskCommExecutor));
+
+        // Set up the HTTP service
+        HttpService httpService = new HttpService(httpproc, reqistry);
+
+        SSLServerSocketFactory sf = null;
+        // SSL code removed as it is not needed
+
+        // create a thread to listen for possible scheduler available connections
+        Thread t = new RequestListenerThread(port, httpService, sf);
+        System.out.println("Request Listener Thread created");
+        t.setDaemon(false);
+        t.start();
+        
+        // main thread should wait for the listener to exit before shutdown the
+        // task executor pool
+        t.join();
+        
+        // shutdown task executor pool and wait for any taskCommExecutor thread
+        // still running
+        taskCommExecutor.shutdown();
+        while (!taskCommExecutor.isTerminated()) {}
+        
+        System.out.println("Finished all task communication executor threads");
+
+//        ExecutorService executor = Executors.newFixedThreadPool(20);
+//        for (int taskID = 0; taskID < 1000; taskID++) {
+//            Task task = new Task(1, taskID, "sleep 240s");
+//            TaskCommThread worker = new TaskCommThread(task, jobMap);
+//            executor.execute(worker);
+//        }
+//        executor.shutdown();
+//        while (!executor.isTerminated()) {}
         
         System.out.println("Finished all tasks");
         

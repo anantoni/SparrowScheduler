@@ -4,8 +4,10 @@
  * and open the template in the editor.
  */
 
-package httpscheduler;
+package policies;
 
+import httpscheduler.HttpComm;
+import httpscheduler.WorkerManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

@@ -4,7 +4,9 @@
  * and open the template in the editor.
  */
 
-package httpscheduler;
+package policies;
+
+import httpscheduler.WorkerManager;
 
 /**
  *
