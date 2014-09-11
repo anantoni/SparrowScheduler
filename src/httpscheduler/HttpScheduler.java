@@ -6,14 +6,6 @@
 
 package httpscheduler;
 
-import policies.*;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -42,27 +34,10 @@ public class HttpScheduler {
         
         int fixedExecutorSize = 4;
         
-        ArrayList<String> workerList = new ArrayList<>();
-        try(BufferedReader br = new BufferedReader(new FileReader( "./config/workers.conf" ))) {
-            for(String line; (line = br.readLine()) != null; ) {
-                workerList.add(line);
-            }
-        }
-        
-        // Initialize worker manager
-        WorkerManager workerManager = new WorkerManager(workerList);
-        
-        // Set random scheduling policy
-        SchedulingPolicy policy = new RandomSchedulingPolicy(workerManager);
-        String workerURL = policy.selectWorker();
-        
-        Map<Integer, String[]> jobMap = new HashMap<>();
-        //jobMap.put(1, new String[1000]);
-        
         //Creating fixed size executor
         ThreadPoolExecutor taskCommExecutor = new ThreadPoolExecutor(fixedExecutorSize, fixedExecutorSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
-        int port = 8080;
+        int port = 51001;
 
         // Set up the HTTP protocol processor
         HttpProcessor httpproc = HttpProcessorBuilder.create()
@@ -109,8 +84,8 @@ public class HttpScheduler {
         
         System.out.println("Finished all tasks");
         
-        for (String result : jobMap.get(1) )
-            System.out.println(result);
+//        for (String result : jobMap.get(1) )
+//            System.out.println(result);
         
 //        // For test purposes
 //        for ( int i = 0 ; i < 1000 ; i++ ) {

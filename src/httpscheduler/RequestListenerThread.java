@@ -6,10 +6,16 @@
 
 package httpscheduler;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.net.ssl.SSLServerSocketFactory;
 import org.apache.http.HttpConnectionFactory;
 import org.apache.http.HttpServerConnection;
@@ -18,6 +24,10 @@ import org.apache.http.impl.DefaultBHttpServerConnectionFactory;
 import org.apache.http.protocol.HttpService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import policies.RandomSchedulingPolicy;
+import policies.SchedulingPolicy;
 
 /**
  *
@@ -35,6 +45,7 @@ import java.util.concurrent.Executors;
                 final int port,
                 final HttpService httpService,
                 final SSLServerSocketFactory sf) throws IOException {
+            
             this.connFactory = DefaultBHttpServerConnectionFactory.INSTANCE;
             this.serversocket = sf != null ? sf.createServerSocket(port) : new ServerSocket(port);
             this.httpService = httpService;
@@ -46,7 +57,38 @@ import java.util.concurrent.Executors;
         @Override
         public void run() {
             System.out.println("Listening on port " + this.serversocket.getLocalPort());
+            ArrayList<String> workerList = new ArrayList<>();
+            
+            // Read list of workers from configuration file
+            try(BufferedReader br = new BufferedReader(new FileReader( "./config/workers.conf" ))) {
+                for(String line; (line = br.readLine()) != null; ) {
+                    workerList.add(line);
+                }
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        
+            // Initialize worker manager
+            WorkerManager workerManager = null;
+            try {
+                workerManager = new WorkerManager(workerList);
+            } catch (Exception ex) {
+                Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+                System.exit(-1);
+            }
+
+            // Set random scheduling policy
+            //SchedulingPolicy policy = new RandomSchedulingPolicy(workerManager);
+            //String workerURL = policy.selectWorker();
+
+            Map<Integer, String[]> jobMap = new HashMap<>();
+            //jobMap.put(1, new String[1000]);
+            
+            System.out.println("ready for connections");
             while (!Thread.interrupted()) {
+                
                 try {
                     // Set up HTTP connection
                     Socket socket = this.serversocket.accept();

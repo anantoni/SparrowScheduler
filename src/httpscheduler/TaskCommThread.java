@@ -6,7 +6,6 @@
 
 package httpscheduler;
 
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,12 +16,12 @@ import java.util.logging.Logger;
 class TaskCommThread extends Thread {
 
     private final Task task;
-    private final Map<Integer, String[]> jobMap;
+    //private final Map<Integer, String[]> jobMap;
 
-    TaskCommThread(Task task, Map<Integer, String[]> jobMap) {
+    TaskCommThread(Task task) {
         super();
         this.task = task;
-        this.jobMap = jobMap;
+        //this.jobMap = jobMap;
     }
 
     @Override
@@ -33,12 +32,12 @@ class TaskCommThread extends Thread {
             Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
-            task.setResult(HttpComm.sendTask("http://localhost:8080/", String.valueOf( task.getTaskID() ), task.getCommand()));
+            task.setResult(HttpComm.sendTask("http://localhost:51000/", String.valueOf( task.getTaskID() ), task.getCommand()));
         } catch (Exception ex) {
             Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
         }
-        String[] resultArray = jobMap.get(task.getJobID());
-        resultArray[task.getTaskID()] = task.getResult();
+//        String[] resultArray = jobMap.get(task.getJobID());
+//        resultArray[task.getTaskID()] = task.getResult();
     }
 };
 
