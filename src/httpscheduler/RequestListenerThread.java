@@ -1,4 +1,4 @@
-/*
+ /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -79,9 +79,7 @@ import policies.SchedulingPolicy;
                 System.exit(-1);
             }
 
-            // Set random scheduling policy
-            //SchedulingPolicy policy = new RandomSchedulingPolicy(workerManager);
-            //String workerURL = policy.selectWorker();
+          
 
             Map<Integer, String[]> jobMap = new HashMap<>();
             //jobMap.put(1, new String[1000]);

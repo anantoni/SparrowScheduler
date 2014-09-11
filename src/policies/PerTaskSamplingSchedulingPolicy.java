@@ -20,19 +20,15 @@ import java.util.logging.Logger;
  * @author anantoni
  */
 public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
-    private WorkerManager workerManager = null;
-    
-    PerTaskSamplingSchedulingPolicy(WorkerManager workerManager) {
-        this.workerManager = workerManager;
-    }
+
     @Override
-    public void setWorkerManager(WorkerManager workerManager) {
+    public void setWorkerManager() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public String selectWorker() {
-        Map<String,String> workerMap = workerManager.getWorkerMap();
+        Map<String,String> workerMap = WorkerManager.getWorkerMap();
         String workerURL = "";
         String workerURL1 = "";
         String result = "";

@@ -17,20 +17,15 @@ import java.util.Random;
  * @author anantoni
  */
 public class RandomSchedulingPolicy implements SchedulingPolicy {
-    private WorkerManager workerManager = null;
-    
-    public RandomSchedulingPolicy(WorkerManager workerManager) {
-        this.workerManager = workerManager;
-    }
             
     @Override
-    public void setWorkerManager(WorkerManager workerManager) {
+    public void setWorkerManager() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public String selectWorker() {
-        Map<String,String> workerMap = workerManager.getWorkerMap();
+        Map<String,String> workerMap = WorkerManager.getWorkerMap();
         String workerURL = "";
         
         do {
@@ -41,5 +36,4 @@ public class RandomSchedulingPolicy implements SchedulingPolicy {
         
         return workerURL;
     }
-    
 }

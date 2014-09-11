@@ -15,7 +15,7 @@ import java.util.Map;
  * @author anantoni
  */
 public class WorkerManager {
-    private final Map<String, String> workerMap;
+    private static Map<String, String> workerMap;
     
     public WorkerManager(List<String> workerList) throws Exception {
         workerMap = new HashMap<>();
@@ -28,11 +28,11 @@ public class WorkerManager {
         }
     }
     
-    public String getWorkerStatus(String workerURL) {
+    public static String getWorkerStatus(String workerURL) {
         return workerMap.get(workerURL);
     }
     
-    public Map<String,String> getWorkerMap() {
+    public static Map<String,String> getWorkerMap() {
         return workerMap;
     }
     

@@ -8,6 +8,7 @@ package httpscheduler;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import policies.*;
 
 /**
  *
@@ -26,13 +27,17 @@ class TaskCommThread extends Thread {
 
     @Override
     public void run() {
+        // Set random scheduling policy
+        SchedulingPolicy policy = new RandomSchedulingPolicy();
+        String workerURL = policy.selectWorker();
+        
         try {
             Thread.sleep(2000L);
         } catch (InterruptedException ex) {
             Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
-            task.setResult(HttpComm.sendTask("http://localhost:51000/", String.valueOf( task.getTaskID() ), task.getCommand()));
+            task.setResult(HttpComm.sendTask(workerURL, String.valueOf( task.getTaskID() ), task.getCommand()));
         } catch (Exception ex) {
             Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
         }

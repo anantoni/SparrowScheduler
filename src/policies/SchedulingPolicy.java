@@ -6,13 +6,11 @@
 
 package policies;
 
-import httpscheduler.WorkerManager;
-
 /**
  *
  * @author anantoni
  */
 public interface SchedulingPolicy {
-    public void setWorkerManager(WorkerManager workerManager);
+    public void setWorkerManager();
     public String selectWorker();
 }
