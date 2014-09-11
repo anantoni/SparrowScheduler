@@ -29,11 +29,12 @@ public class RandomSchedulingPolicy implements SchedulingPolicy {
         String workerURL = "";
         
         do {
-            Random random    = new Random();
-            List<String> keys  = new ArrayList<>(workerMap.keySet());
-            workerURL = keys.get( random.nextInt(keys.size()) );           
+                Random random    = new Random();
+                List<String> keys  = new ArrayList<>(workerMap.keySet());
+                workerURL = keys.get(random.nextInt(keys.size()));      
+                System.out.println(workerMap.get(workerURL));
         } while (workerMap.get(workerURL).equals("DOWN"));
-        
+        System.out.println(workerURL);
         return workerURL;
     }
 }

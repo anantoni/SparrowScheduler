@@ -26,8 +26,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import policies.RandomSchedulingPolicy;
-import policies.SchedulingPolicy;
 
 /**
  *
@@ -56,65 +54,59 @@ import policies.SchedulingPolicy;
 
         @Override
         public void run() {
-            System.out.println("Listening on port " + this.serversocket.getLocalPort());
-            ArrayList<String> workerList = new ArrayList<>();
+                System.out.println("Listening on port " + this.serversocket.getLocalPort());
+                ArrayList<String> workerList = new ArrayList<>();
             
-            // Read list of workers from configuration file
-            try(BufferedReader br = new BufferedReader(new FileReader( "./config/workers.conf" ))) {
-                for(String line; (line = br.readLine()) != null; ) {
-                    workerList.add(line);
+                // Read list of workers from configuration file
+                try(BufferedReader br = new BufferedReader(new FileReader( "./config/workers.conf" ))) {
+                        for(String line; (line = br.readLine()) != null; ) {
+                                workerList.add(line);
+                        }
+                } catch (FileNotFoundException ex) {
+                        Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                        Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
-            }
         
-            // Initialize worker manager
-            WorkerManager workerManager = null;
-            try {
-                workerManager = new WorkerManager(workerList);
-            } catch (Exception ex) {
-                Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
-                System.exit(-1);
-            }
-
-          
-
-            Map<Integer, String[]> jobMap = new HashMap<>();
-            //jobMap.put(1, new String[1000]);
-            
-            System.out.println("ready for connections");
-            while (!Thread.interrupted()) {
-                
+                // Initialize worker manager
                 try {
-                    // Set up HTTP connection
-                    Socket socket = this.serversocket.accept();
-                    System.out.println("Incoming connection from " + socket.getInetAddress());
-                    HttpServerConnection conn = this.connFactory.createConnection(socket);
-
-                    //Thread t = new TaskExecutorThread(this.httpService, conn);
-                    // Initialize the pool
-                    Thread connectionHandler = new ConnectionHandlerThread(this.httpService, conn);             
-                    
-                    connectionHandler.setDaemon(true);
-                    //System.out.println("print #2");
-                    connectionHandlerExecutor.execute(connectionHandler);
-                    System.out.println("\tConnection Handler Thread created");
-                    //t.start();
-                } catch (InterruptedIOException ex) {
-                    break;
-                } catch (IOException e) {
-                    System.err.println("I/O error initialising connection thread: "
-                            + e.getMessage());
-                    break;
+                    WorkerManager.useWorkerList(workerList);
+                } catch (Exception ex) {
+                    Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+                    System.exit(-1);
                 }
-            }
-            // when the listener is interupted shutdown the pool
-            // and wait for any Connection Handler threads still running
-            connectionHandlerExecutor.shutdown();
-            while (!connectionHandlerExecutor.isTerminated()) {}
-            
-            System.out.println("Finished all connection handler threads");            
+                WorkerManager.printWorkerMap();
+
+                Map<Integer, String[]> jobMap = new HashMap<>();
+                //jobMap.put(1, new String[1000]);
+
+                System.out.println("ready for connections");
+                while (!Thread.interrupted()) {
+                        try {
+                                // Set up HTTP connection
+                                Socket socket = this.serversocket.accept();
+                                System.out.println("Incoming connection from " + socket.getInetAddress());
+                                HttpServerConnection conn = this.connFactory.createConnection(socket);
+
+                                // Initialize the pool
+                                Thread connectionHandler = new ConnectionHandlerThread(this.httpService, conn);             
+
+                                connectionHandler.setDaemon(true);
+                                connectionHandlerExecutor.execute(connectionHandler);
+                                System.out.println("\tConnection Handler Thread created");
+                        } catch (InterruptedIOException ex) {
+                                break;
+                        } catch (IOException e) {
+                                System.err.println("I/O error initialising connection thread: "
+                                    + e.getMessage());
+                            break;
+                        }
+                }
+                // when the listener is interupted shutdown the pool
+                // and wait for any Connection Handler threads still running
+                connectionHandlerExecutor.shutdown();
+                while (!connectionHandlerExecutor.isTerminated()) {}
+
+                System.out.println("Finished all connection handler threads");            
         }
     }
