@@ -29,7 +29,8 @@ class TaskCommThread extends Thread {
     public void run() {
         System.out.println("niaou");
         // Set random scheduling policy
-        SchedulingPolicy policy = new RandomSchedulingPolicy();
+        //SchedulingPolicy policy = new RandomSchedulingPolicy();
+        SchedulingPolicy policy = new PerTaskSamplingSchedulingPolicy();
         String workerURL = policy.selectWorker();
         System.out.println(workerURL);
 //        try {

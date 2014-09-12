@@ -37,7 +37,7 @@ public class HttpComm {
     public static void multiProbe( List<String> workersList ) throws Exception {
         // TODO: handle multiprobe result
         for ( String workerURL : workersList ) 
-            probe( workerURL );
+                probe( workerURL );
     }
     
     public static String sendTask( String workerURL, String jobID, String taskCommand ) throws Exception {
@@ -59,30 +59,30 @@ public class HttpComm {
     public static String schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             
-            HttpPost httpPost = new HttpPost( workerURL );
-            List <NameValuePair> nvps = new ArrayList <>();
-            postArguments.keySet().stream().forEach((key) -> { 
-                nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
-            });
-            //for ( String key : postArguments.keySet() ) 
-            //nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
-            
-            //nvps.add(new BasicNameValuePair("username", "vip"));
-            //nvps.add(new BasicNameValuePair("password", "secret"));
-            httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-            
-            try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
-                System.out.println(response2.getStatusLine());
-                HttpEntity entity2 = response2.getEntity();
-                String s = EntityUtils.toString(entity2);
-//                byte[] entityContent = EntityUtils.toByteArray(entity2);
-//                String a = new String(entityContent);
-//                System.out.println(a);
-                // do something useful with the response body
-                // and ensure it is fully consumed
-                EntityUtils.consume(entity2);
-                return s;
-            }
+                HttpPost httpPost = new HttpPost( workerURL );
+                List <NameValuePair> nvps = new ArrayList <>();
+                postArguments.keySet().stream().forEach((key) -> { 
+                    nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
+                });
+                //for ( String key : postArguments.keySet() ) 
+                //nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
+
+                //nvps.add(new BasicNameValuePair("username", "vip"));
+                //nvps.add(new BasicNameValuePair("password", "secret"));
+                httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+
+                try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
+                        System.out.println(response2.getStatusLine());
+                        HttpEntity entity2 = response2.getEntity();
+                        String s = EntityUtils.toString(entity2);
+        //                byte[] entityContent = EntityUtils.toByteArray(entity2);
+        //                String a = new String(entityContent);
+        //                System.out.println(a);
+                        // do something useful with the response body
+                        // and ensure it is fully consumed
+                        EntityUtils.consume(entity2);
+                        return s;
+                }
         }
     }
 }

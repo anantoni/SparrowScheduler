@@ -37,7 +37,7 @@ public class HttpScheduler {
         //Creating fixed size executor
         ThreadPoolExecutor taskCommExecutor = new ThreadPoolExecutor(fixedExecutorSize, fixedExecutorSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
-        int port = 51001;
+        int port = 51000;
 
         // Set up the HTTP protocol processor
         HttpProcessor httpproc = HttpProcessorBuilder.create()

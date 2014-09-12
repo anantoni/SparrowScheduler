@@ -39,28 +39,30 @@ public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
         
         // Select a random active worker
         do {
-            workerURL = keys.get( random.nextInt(keys.size()) );           
+                workerURL = keys.get( random.nextInt(keys.size()) );           
         } while (workerMap.get(workerURL).equals("DOWN"));
         
         // Select a second random active worker, different from the first one
         do {
-            workerURL1 = keys.get( random.nextInt(keys.size()) );           
+                workerURL1 = keys.get( random.nextInt(keys.size()) );           
         } while (workerMap.get(workerURL1).equals("DOWN") || workerURL.equals(workerURL1));
         
         try {
-            result = HttpComm.probe(workerURL);
+                result = HttpComm.probe(workerURL);
+                System.out.println("First worker: " + result);
         } catch (Exception ex) {
             Logger.getLogger(PerTaskSamplingSchedulingPolicy.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         try {
             result1 = HttpComm.probe(workerURL1);
+            System.out.println("Second worker: " + result1);
         } catch (Exception ex) {
             Logger.getLogger(PerTaskSamplingSchedulingPolicy.class.getName()).log(Level.SEVERE, null, ex);
         }
         assert result.matches("[0-9]+");
         assert result1.matches("[0-9]+");
-        Integer.parseInt(result);
+        //Integer.parseInt(result);
         
         return Integer.parseInt(result) > Integer.parseInt(result1) ? workerURL : workerURL1;
     }
