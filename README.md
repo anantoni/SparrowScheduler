@@ -7,4 +7,6 @@ SparrowScheduler
 
 TODO: Late Binding, Job Stealing, use Scheduler as multi-threaded server
 
-Potential improvements: Use protobuf or thrift.
+Potential improvements:
+-- Use protobuf or thrift.
+-- Fix requirement for at least two active workers? Downgrade policies?
