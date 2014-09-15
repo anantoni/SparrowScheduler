@@ -34,10 +34,11 @@ public class HttpComm {
         return s;
     }
     
-    public static void multiProbe( List<String> workersList ) throws Exception {
-        // TODO: handle multiprobe result
+    public static Map<String, String> multiProbe( List<String> workersList ) throws Exception {
+        Map<String, String> results = new HashMap<>();
         for ( String workerURL : workersList ) 
-                probe( workerURL );
+                results.put(workerURL, probe(workerURL));
+        return results;
     }
     
     public static String sendTask( String workerURL, String jobID, String taskCommand ) throws Exception {

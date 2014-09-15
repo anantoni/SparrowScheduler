@@ -63,4 +63,8 @@ public class WorkerManager {
         return workerMap;
     }
     
+    public static int getWorkerNumber() {
+        return workerMap.keySet().size();
+    }
+    
 }

@@ -17,20 +17,18 @@ import policies.*;
 class TaskCommThread extends Thread {
 
     private final Task task;
+    private final SchedulingPolicy policy;
     //private final Map<Integer, String[]> jobMap;
 
-    TaskCommThread(Task task) {
+    TaskCommThread(Task task, SchedulingPolicy policy) {
         super();
         this.task = task;
+        this.policy = policy;
         //this.jobMap = jobMap;
     }
 
     @Override
     public void run() {
-        System.out.println("niaou");
-        // Set random scheduling policy
-        //SchedulingPolicy policy = new RandomSchedulingPolicy();
-        SchedulingPolicy policy = new PerTaskSamplingSchedulingPolicy();
         String workerURL = policy.selectWorker();
         System.out.println(workerURL);
 //        try {
@@ -39,9 +37,9 @@ class TaskCommThread extends Thread {
 //            Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
 //        }
         try {
-            task.setResult(HttpComm.sendTask(workerURL, String.valueOf( task.getTaskID() ), task.getCommand()));
+                 task.setResult(HttpComm.sendTask(workerURL, String.valueOf( task.getTaskID() ), task.getCommand()));
         } catch (Exception ex) {
-            Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
         }
 //        String[] resultArray = jobMap.get(task.getJobID());
 //        resultArray[task.getTaskID()] = task.getResult();
