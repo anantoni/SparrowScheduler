@@ -25,6 +25,7 @@ public class RandomSchedulingPolicy implements SchedulingPolicy {
 
     @Override
     public String selectWorker() {
+        WorkerManager.getReadLock().lock();
         Map<String,String> workerMap = WorkerManager.getWorkerMap();
         String workerURL = "";
         
@@ -32,9 +33,9 @@ public class RandomSchedulingPolicy implements SchedulingPolicy {
                 Random random    = new Random();
                 List<String> keys  = new ArrayList<>(workerMap.keySet());
                 workerURL = keys.get(random.nextInt(keys.size()));      
-                System.out.println(workerMap.get(workerURL));
         } while (workerMap.get(workerURL).equals("DOWN"));
-        System.out.println(workerURL);
+        WorkerManager.getReadLock().unlock();
+        System.out.println( "Random scheduling policy: " + workerURL);
         return workerURL;
     }
 }

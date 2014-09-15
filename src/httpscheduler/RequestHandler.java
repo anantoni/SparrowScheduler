@@ -75,10 +75,11 @@ class RequestHandler implements HttpRequestHandler  {
                         
                         // Set scheduling policy
                         SchedulingPolicy policy = new BatchSamplingSchedulingPolicy();
-                        //policy = new RandomSchedulingPolicy();
+                        policy = new RandomSchedulingPolicy();
                         //policy = new PerTaskSamplingSchedulingPolicy();
                                 
                         if (policy instanceof BatchSamplingSchedulingPolicy) {
+                                WorkerManager.getReadLock().lock();
                                 Map<String, String> results = null;
                                 List workerURLs = new LinkedList<>();
                                 List toBeProbed = new LinkedList<>();
@@ -118,6 +119,7 @@ class RequestHandler implements HttpRequestHandler  {
 
                                 System.out.println( "Least loaded worker: " + min.getKey());
                                 ((BatchSamplingSchedulingPolicy)policy).setSelectedWorker(min.getKey());
+                                WorkerManager.getReadLock().unlock();
                         }
                         // Create communication thread
                         for (Task taskToProcess : tasksList) {

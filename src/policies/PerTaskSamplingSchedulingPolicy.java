@@ -28,6 +28,7 @@ public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
 
     @Override
     public String selectWorker() {
+        WorkerManager.getReadLock().lock();
         Map<String,String> workerMap = WorkerManager.getWorkerMap();
         String workerURL = "";
         String workerURL1 = "";
@@ -47,6 +48,7 @@ public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
                 workerURL1 = keys.get( random.nextInt(keys.size()) );           
         } while (workerMap.get(workerURL1).equals("DOWN") || workerURL.equals(workerURL1));
         
+        WorkerManager.getReadLock().unlock();
         try {
                 result = HttpComm.probe(workerURL);
                 System.out.println("First worker: " + result);

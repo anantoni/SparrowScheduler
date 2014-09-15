@@ -6,40 +6,79 @@
 
 package httpscheduler;
 
+import java.net.SocketException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.conn.HttpHostConnectException;
 /**
  *
  * @author anantoni
  */
 public class WorkerManager {
-    private static Map<String, String> workerMap;
+    private static Map<String, String> workerMap;  
+    private static final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private static final Lock read  = readWriteLock.readLock();
+    private static final Lock write = readWriteLock.writeLock();
     
-    public WorkerManager(List<String> workerList) throws Exception {
+    public WorkerManager(List<String> workerList) {
         workerMap = new HashMap<>();
         for (String workerURL :workerList) {
-            String result = HttpComm.heartbeat(workerURL);
-            System.out.println(result);
-            if (result.equals("result:success")) 
-                workerMap.put(workerURL, "OK");
-            else 
-                workerMap.put(workerURL, "DOWN");
+                try {
+                    String result = HttpComm.heartbeat(workerURL);
+                    System.out.println(result);
+                    if (result.equals("result:success"))
+                        workerMap.put(workerURL, "OK");
+                    else
+                        workerMap.put(workerURL, "DOWN");
+                } catch ( HttpHostConnectException | NoHttpResponseException ex) {
+                WorkerManager.getWriteLock().lock();
+                WorkerManager.getWorkerMap().put(workerURL, "DOWN");
+                WorkerManager.getWriteLock().unlock();
+                Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+        catch ( SocketException ex) {
+                WorkerManager.getWriteLock().lock();
+                WorkerManager.getWorkerMap().put(workerURL, "DOWN");
+                WorkerManager.getWriteLock().unlock();
+                Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
         }
     }
     
-    public static void useWorkerList(List<String> workerList) throws Exception {
+    public static void useWorkerList(List<String> workerList) {
         workerMap = new HashMap<>();
         for (String workerURL :workerList) {
-            String result = HttpComm.heartbeat(workerURL);
-            System.out.println("heartbeat: " + result);
-            if (result.equals("result:success")) 
-                workerMap.put(workerURL, "OK");
-            else 
-                workerMap.put(workerURL, "DOWN");
+            try {
+                String result = HttpComm.heartbeat(workerURL);
+                System.out.println("heartbeat: " + result);
+                if (result.equals("result:success"))
+                    workerMap.put(workerURL, "OK");
+                else
+                    workerMap.put(workerURL, "DOWN");
+            } catch ( HttpHostConnectException | NoHttpResponseException ex) {
+                WorkerManager.getWriteLock().lock();
+                WorkerManager.getWorkerMap().put(workerURL, "DOWN");
+                WorkerManager.getWriteLock().unlock();
+                Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+        catch ( SocketException ex) {
+                WorkerManager.getWriteLock().lock();
+                WorkerManager.getWorkerMap().put(workerURL, "DOWN");
+                WorkerManager.getWriteLock().unlock();
+                Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
         }
     }
     
@@ -59,8 +98,44 @@ public class WorkerManager {
         return workerMap.get(workerURL);
     }
     
+    public static void updateWorkerStatus(){
+        write.lock();
+        for (String workerURL : workerMap.keySet()) {
+            try {
+                String result = HttpComm.heartbeat(workerURL);
+                System.out.println("heartbeat: " + result);
+                if (result.equals("result:success"))
+                    workerMap.put(workerURL, "OK");
+                else
+                    workerMap.put(workerURL, "DOWN");
+            } catch ( HttpHostConnectException | NoHttpResponseException ex) {
+                WorkerManager.getWriteLock().lock();
+                WorkerManager.getWorkerMap().put(workerURL, "DOWN");
+                WorkerManager.getWriteLock().unlock();
+                Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+        catch ( SocketException ex) {
+                WorkerManager.getWriteLock().lock();
+                WorkerManager.getWorkerMap().put(workerURL, "DOWN");
+                WorkerManager.getWriteLock().unlock();
+                Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        }
+        write.unlock();
+    }
+    
     public static Map<String,String> getWorkerMap() {
         return workerMap;
+    }
+    
+    public static Lock getReadLock() {
+        return read;
+    }
+    
+     public static Lock getWriteLock() {
+        return write;
     }
     
     public static int getWorkerNumber() {

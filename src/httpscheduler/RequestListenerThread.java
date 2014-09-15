@@ -79,7 +79,8 @@ import java.util.logging.Logger;
 
                 Map<Integer, String[]> jobMap = new HashMap<>();
                 //jobMap.put(1, new String[1000]);
-
+                Thread workerStatusThread = new UpdateWorkerStatusThread();
+                workerStatusThread.start();
                 System.out.println("ready for connections");
                 while (!Thread.interrupted()) {
                         try {
