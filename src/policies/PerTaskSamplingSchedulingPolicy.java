@@ -6,8 +6,8 @@
 
 package policies;
 
-import httpscheduler.HttpComm;
-import httpscheduler.WorkerManager;
+import utils.HttpComm;
+import utils.WorkerManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package httpscheduler;
+package utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +25,8 @@ import org.apache.http.util.EntityUtils;
  * @author anantoni
  */
 public class HttpComm {
+    static String hostname = "127.0.0.1";
+    static Integer port = new Integer(51000);
     public static String probe( String workerURL ) throws Exception { 
         // TODO: handle probe result
         
@@ -38,6 +40,23 @@ public class HttpComm {
         Map<String, String> results = new HashMap<>();
         for ( String workerURL : workersList ) 
                 results.put(workerURL, probe(workerURL));
+        return results;
+    }
+    
+    public static Map<String, String> lateBindingMultiProbe(List<String> workersList, int jobID) throws Exception {
+        StringBuilder thisSchedulerURL = new StringBuilder("http://");
+        thisSchedulerURL.append(hostname).append(":").append(port).toString();
+        
+        Map<String, String> results = new HashMap<>();
+        Map<String, String> postArguments = new HashMap();
+        
+        postArguments.put( "probe", "yes" );
+        postArguments.put( "scheduler-url", thisSchedulerURL.toString() );
+        postArguments.put( "job-id", Integer.toString(jobID) );
+        
+        for ( String workerURL : workersList ) 
+                results.put(workerURL, schedulerPost( workerURL, postArguments ));
+        
         return results;
     }
     

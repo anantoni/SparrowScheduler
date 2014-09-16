@@ -6,6 +6,9 @@
 
 package httpscheduler;
 
+import utils.WorkerManager;
+import utils.Task;
+import utils.HttpComm;
 import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,7 +20,7 @@ import policies.*;
  *
  * @author anantoni
  */
-class TaskCommThread extends Thread {
+public class TaskCommThread extends Thread {
 
     private final Task task;
     private final SchedulingPolicy policy, backupPolicy;

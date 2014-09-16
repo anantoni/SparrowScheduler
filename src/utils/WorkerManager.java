@@ -4,8 +4,9 @@
  * and open the template in the editor.
  */
 
-package httpscheduler;
+package utils;
 
+import httpscheduler.TaskCommThread;
 import java.net.SocketException;
 import java.util.Collection;
 import java.util.HashMap;

@@ -18,6 +18,8 @@ import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
+import utils.AtomicCounter;
+import utils.JobMap;
 
 /**
  *
@@ -36,7 +38,11 @@ public class HttpScheduler {
         
         //Creating fixed size executor
         ThreadPoolExecutor taskCommExecutor = new ThreadPoolExecutor(fixedExecutorSize, fixedExecutorSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        // Both of these values are mainly used in Late Binding
+        JobMap jobMap = new JobMap();
+        AtomicCounter jobCounter = new AtomicCounter();
 
+        // Set port number
         int port = 51000;
         
         // Set up the HTTP protocol processor
@@ -48,8 +54,9 @@ public class HttpScheduler {
 
         // Set up request handlers
         UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
-        reqistry.register("*", new RequestHandler(taskCommExecutor));
-
+        //reqistry.register("*", new RequestHandler(taskCommExecutor));
+        reqistry.register("*", new LateBindingRequestHandler(taskCommExecutor, jobMap, jobCounter));
+        
         // Set up the HTTP service
         HttpService httpService = new HttpService(httpproc, reqistry);
 
@@ -57,7 +64,8 @@ public class HttpScheduler {
         // SSL code removed as it is not needed
 
         // create a thread to listen for possible scheduler available connections
-        Thread t = new RequestListenerThread(port, httpService, sf);
+        //Thread t = new RequestListenerThread(port, httpService, sf);
+        Thread t = new LateBindingRequestListenerThread(port, httpService, sf);
         System.out.println("Request Listener Thread created");
         t.setDaemon(false);
         t.start();

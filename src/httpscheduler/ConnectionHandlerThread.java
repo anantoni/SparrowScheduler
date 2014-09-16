@@ -16,7 +16,7 @@ import org.apache.http.protocol.HttpService;
 
 /**
  *
- * @author thomas
+ * @author anantoni
  */
     class ConnectionHandlerThread extends Thread {
 

@@ -1,13 +1,11 @@
- /*
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package httpscheduler;
 
 import utils.WorkerManager;
-import utils.AtomicCounter;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -16,32 +14,28 @@ import java.io.InterruptedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.net.ssl.SSLServerSocketFactory;
 import org.apache.http.HttpConnectionFactory;
 import org.apache.http.HttpServerConnection;
 import org.apache.http.impl.DefaultBHttpServerConnection;
 import org.apache.http.impl.DefaultBHttpServerConnectionFactory;
 import org.apache.http.protocol.HttpService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
- * @author thomas
+ * @author anantoni
  */
-
-    class RequestListenerThread extends Thread {
-
+public class LateBindingRequestListenerThread extends Thread{
         private final HttpConnectionFactory<DefaultBHttpServerConnection> connFactory;
         private final ServerSocket serversocket;
         private final HttpService httpService;
         private final ExecutorService connectionHandlerExecutor;
         
-        public RequestListenerThread(
+        public LateBindingRequestListenerThread(
                 final int port,
                 final HttpService httpService,
                 final SSLServerSocketFactory sf) throws IOException {
@@ -79,7 +73,6 @@ import java.util.logging.Logger;
                 }
                 WorkerManager.printWorkerMap();
 
-                Map<Integer, String[]> jobMap = new HashMap<>();
                 //jobMap.put(1, new String[1000]);
                 Thread workerStatusThread = new UpdateWorkerStatusThread();
                 workerStatusThread.start();
@@ -102,7 +95,7 @@ import java.util.logging.Logger;
                         } catch (IOException e) {
                                 System.err.println("I/O error initialising connection thread: "
                                     + e.getMessage());
-                            break;
+                                break;
                         }
                 }
                 // when the listener is interupted shutdown the pool
@@ -112,4 +105,4 @@ import java.util.logging.Logger;
 
                 System.out.println("Finished all connection handler threads");            
         }
-    }
+}
