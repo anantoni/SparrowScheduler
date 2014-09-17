@@ -13,4 +13,5 @@ package policies;
 public interface SchedulingPolicy {
     public void setWorkerManager();
     public String selectWorker();
+    public String selectBatchWorker(int size);
 }

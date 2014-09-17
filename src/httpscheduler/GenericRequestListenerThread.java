@@ -33,14 +33,14 @@ import java.util.logging.Logger;
  * @author thomas
  */
 
-    class RequestListenerThread extends Thread {
+    class GenericRequestListenerThread extends Thread {
 
         private final HttpConnectionFactory<DefaultBHttpServerConnection> connFactory;
         private final ServerSocket serversocket;
         private final HttpService httpService;
         private final ExecutorService connectionHandlerExecutor;
         
-        public RequestListenerThread(
+        public GenericRequestListenerThread(
                 final int port,
                 final HttpService httpService,
                 final SSLServerSocketFactory sf) throws IOException {
@@ -64,16 +64,16 @@ import java.util.logging.Logger;
                                 workerList.add(line);
                         }
                 } catch (FileNotFoundException ex) {
-                        Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(GenericRequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException ex) {
-                        Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(GenericRequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
         
                 // Initialize worker manager
                 try {
                         WorkerManager.useWorkerList(workerList);
                 } catch (Exception ex) {
-                        Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(GenericRequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
                         System.exit(-1);
                 }
                 WorkerManager.printWorkerMap();

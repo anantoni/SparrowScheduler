@@ -6,18 +6,11 @@
 
 package httpscheduler;
 
-import utils.WorkerManager;
 import utils.Task;
-import utils.HttpComm;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -35,6 +28,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
 import policies.BatchSamplingSchedulingPolicy;
+import policies.PerTaskSamplingSchedulingPolicy;
 import policies.RandomSchedulingPolicy;
 import policies.SchedulingPolicy;
 
@@ -42,14 +36,16 @@ import policies.SchedulingPolicy;
  *
  * @author anantoni
  */
-class RequestHandler implements HttpRequestHandler  {
-    private final ThreadPoolExecutor taskCommExecutor;         
+class GenericRequestHandler implements HttpRequestHandler  {
+        private final ThreadPoolExecutor taskCommExecutor;
+        private final String mode;
 
-    // Pass reference to the requestsQueue to the RequestHandler
-    public RequestHandler(ThreadPoolExecutor taskCommExecutor) {
-        super();
-        this.taskCommExecutor = taskCommExecutor;
-    }
+        // Pass reference to the requestsQueue to the GenericRequestHandler
+        public GenericRequestHandler(ThreadPoolExecutor taskCommExecutor, String mode) {
+                super();
+                this.taskCommExecutor = taskCommExecutor;
+                this.mode = mode;
+        }
 
         @Override
          public void handle(
@@ -75,52 +71,26 @@ class RequestHandler implements HttpRequestHandler  {
                         
                         
                         // Set scheduling policy
-                        SchedulingPolicy policy = new BatchSamplingSchedulingPolicy();
-                        policy = new RandomSchedulingPolicy();
-                        //policy = new PerTaskSamplingSchedulingPolicy();
+                        SchedulingPolicy policy = null;
+                        
+                        switch (mode) {
+                                case "random":
+                                        policy = new RandomSchedulingPolicy();
+                                        break;
+                                case "per-task":
+                                        policy = new PerTaskSamplingSchedulingPolicy();
+                                        break;
+                                case "batch":
+                                        policy = new BatchSamplingSchedulingPolicy();
+                                        break;
                                 
+                                default:
+                                        throw new IllegalArgumentException("Invalid mode: " + mode);
+                        }
+                        
+                        // Different handling for Batch Processing
                         if (policy instanceof BatchSamplingSchedulingPolicy) {
-                                WorkerManager.getReadLock().lock();
-                                Map<String, String> results = null;
-                                List workerURLs = new LinkedList<>();
-                                List toBeProbed = new LinkedList<>();
-                                workerURLs.addAll(WorkerManager.getWorkerMap().keySet());
-                                
-                                // if #tasks >= #workers 
-                                if (tasksList.size() * 2 >= WorkerManager.getWorkerNumber()) {
-                                        // add all workers for multiprobe
-                                        toBeProbed.addAll(workerURLs);
-                                }
-                                // else
-                                else {
-                                        //multiprobe d * #tasks where d = 2;
-                                        for (int i=0; i< 2 * tasksList.size() - 1; i++) {
-                                                Collections.shuffle(workerURLs);
-                                                toBeProbed.add(workerURLs.get(0));
-                                        }
-                                }
-                                
-                                // Execute multiprobe
-                                try {
-                                        results =  HttpComm.multiProbe(toBeProbed);
-                                        for (String url : results.keySet())
-                                                System.out.println("Worker url: " + url + " - probe result: " + results.get(url));
-                                } 
-                                catch (Exception ex) {
-                                        Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
-                                }
-                                
-                                // Find the key of the minimum probe result
-                                Entry<String, String> min = null;
-                                for (Entry<String, String> entry : results.entrySet()) {
-                                        if (min == null || Integer.parseInt(min.getValue()) > Integer.parseInt(entry.getValue())) {
-                                            min = entry;
-                                        }
-                                }
-
-                                System.out.println( "Least loaded worker: " + min.getKey());
-                                ((BatchSamplingSchedulingPolicy)policy).setSelectedWorker(min.getKey());
-                                WorkerManager.getReadLock().unlock();
+                                policy.selectBatchWorker(tasksList.size());
                         }
                         // Create communication thread
                         for (Task taskToProcess : tasksList) {
@@ -133,7 +103,7 @@ class RequestHandler implements HttpRequestHandler  {
                                 // finishes its computation
                                 threadMonitor.get();
                         } catch (InterruptedException | ExecutionException ex) {
-                            Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+                            Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
                         }
 
                         response.setStatusCode(HttpStatus.SC_OK);
@@ -157,7 +127,7 @@ class RequestHandler implements HttpRequestHandler  {
                 result = java.net.URLDecoder.decode(httpRequest, "UTF-8");
                 System.out.println("Decoded request: " + result);
         } catch (UnsupportedEncodingException ex) {
-                Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
         String[] requestArguments = result.split("&");
         

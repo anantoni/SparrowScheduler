@@ -59,16 +59,16 @@ public class LateBindingRequestListenerThread extends Thread{
                                 workerList.add(line);
                         }
                 } catch (FileNotFoundException ex) {
-                        Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(GenericRequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException ex) {
-                        Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(GenericRequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
         
                 // Initialize worker manager
                 try {
                         WorkerManager.useWorkerList(workerList);
                 } catch (Exception ex) {
-                        Logger.getLogger(RequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(GenericRequestListenerThread.class.getName()).log(Level.SEVERE, null, ex);
                         System.exit(-1);
                 }
                 WorkerManager.printWorkerMap();

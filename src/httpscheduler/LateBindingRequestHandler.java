@@ -42,7 +42,7 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
         private final JobMap jobMap;
         private final AtomicCounter jobCounter;
 
-        // Pass reference to the requestsQueue to the RequestHandler
+        // Pass reference to the requestsQueue to the GenericRequestHandler
         public LateBindingRequestHandler(ThreadPoolExecutor taskCommExecutor, JobMap jobMap, AtomicCounter jobCounter) {
                 super();
                 this.taskCommExecutor = taskCommExecutor;
@@ -96,7 +96,7 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
                                                 System.out.println("Late binding probe result: " + result);
                                 } 
                                 catch (Exception ex) {
-                                        Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+                                        Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
                                 }
                         }
                         else if (parseResult.contains("probe-response")) {
@@ -129,7 +129,7 @@ String parseHttpClientRequest(String httpRequest) {
                 result = java.net.URLDecoder.decode(httpRequest, "UTF-8");
                 System.out.println("Decoded request: " + result);
         } catch (UnsupportedEncodingException ex) {
-                Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
         String[] requestArguments = result.split("&");
         

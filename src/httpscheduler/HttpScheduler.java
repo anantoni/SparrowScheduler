@@ -34,6 +34,12 @@ public class HttpScheduler {
     
     public static void main(String[] args) throws Exception{
         
+         if (args.length != 2) {
+            System.err.println("Invalid command line parameters for worker");
+            System.exit(-1);
+        }
+        
+        
         int fixedExecutorSize = 4;
         
         //Creating fixed size executor
@@ -43,7 +49,10 @@ public class HttpScheduler {
         AtomicCounter jobCounter = new AtomicCounter();
 
         // Set port number
-        int port = 51000;
+        int port = Integer.parseInt(args[0]);
+        
+         // Set worker mode
+        String mode = args[1].substring(2);
         
         // Set up the HTTP protocol processor
         HttpProcessor httpproc = HttpProcessorBuilder.create()
@@ -54,8 +63,11 @@ public class HttpScheduler {
 
         // Set up request handlers
         UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
-        //reqistry.register("*", new RequestHandler(taskCommExecutor));
-        reqistry.register("*", new LateBindingRequestHandler(taskCommExecutor, jobMap, jobCounter));
+        // Different handlers for late binding and generic cases
+        if (mode.equals("late"))
+                reqistry.register("*", new LateBindingRequestHandler(taskCommExecutor, jobMap, jobCounter));
+        else
+                reqistry.register("*", new GenericRequestHandler(taskCommExecutor, mode));
         
         // Set up the HTTP service
         HttpService httpService = new HttpService(httpproc, reqistry);
@@ -80,29 +92,7 @@ public class HttpScheduler {
         while (!taskCommExecutor.isTerminated()) {}
         
         System.out.println("Finished all task communication executor threads");
-
-//        ExecutorService executor = Executors.newFixedThreadPool(20);
-//        for (int taskID = 0; taskID < 1000; taskID++) {
-//            Task task = new Task(1, taskID, "sleep 240s");
-//            TaskCommThread worker = new TaskCommThread(task, jobMap);
-//            executor.execute(worker);
-//        }
-//        executor.shutdown();
-//        while (!executor.isTerminated()) {}
-        
         System.out.println("Finished all tasks");
         
-//        for (String result : jobMap.get(1) )
-//            System.out.println(result);
-        
-//        // For test purposes
-//        for ( int i = 0 ; i < 1000 ; i++ ) {
-//            // sleep for about 2 seconds
-//            Thread.sleep(5000L);
-//            s.sendTask( "http://localhost:8080/", "1", "sleep 240s");
-//        }
     }
-    
-    
-    
 }
