@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
@@ -72,9 +71,8 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
                         String parseResult = parseHttpClientRequest(entity);
                         
                         if (parseResult.contains("new-job")) {
-                        
                                 WorkerManager.getReadLock().lock();
-                                Map<String, String> results = null;
+                                List<String> results;
                                 List workerURLs = new LinkedList<>();
                                 List toBeProbed = new LinkedList<>();
                                 workerURLs.addAll(WorkerManager.getWorkerMap().keySet());
@@ -82,32 +80,39 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
 
                                 String[] pieces = parseResult.split(":");
                                 //multiprobe d * #tasks where d = 2;
-                                for (int i=0; i< 2 * Integer.parseInt(pieces[1]) - 1; i++) {
+                                int numberOfProbes = 2 * Integer.parseInt(pieces[2]);
+                                for (int i=0; i<numberOfProbes; i++) {
                                         Collections.shuffle(workerURLs);
                                         toBeProbed.add(workerURLs.get(0));
                                 }
 
                                 // Execute late binding multiprobe - we expect instant OK responses
                                 try {
-                                        results =  HttpComm.multiProbe(toBeProbed);
-                                        for (String url : results.keySet())
-                                                System.out.println("Worker url: " + url + " - probe result: " + results.get(url));
+                                        System.out.println("Needed probes: " + numberOfProbes);
+                                        System.out.println("Sending :" + toBeProbed.size() + " probes");
+                                        System.out.println("Job id: " + pieces[1]);
+                                        results =  HttpComm.lateBindingMultiProbe(toBeProbed, Integer.parseInt(pieces[1]));
+                                        for (String result : results)
+                                                System.out.println("Late binding probe result: " + result);
                                 } 
                                 catch (Exception ex) {
                                         Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
                                 }
                         }
-                        else if (parseResult.contains("probe_response")) {
+                        else if (parseResult.contains("probe-response")) {
+                                System.out.println("Received probe response.");
                                 String[] pieces = parseResult.split(":");
                                 BlockingQueue<Task> taskQueue = jobMap.getTaskQueue(Integer.parseInt(pieces[1]));
                                 
                                 if (taskQueue.isEmpty()) {
                                         response.setStatusCode(HttpStatus.SC_OK);
                                         stringEntity = new StringEntity("NOOP");
+                                        System.out.println("Responding with NOOP");
                                 }
                                 else {
                                         Task task = taskQueue.remove();
-                                        stringEntity = new StringEntity(String.valueOf( task.getTaskID() ), task.getCommand());
+                                        stringEntity = new StringEntity(String.valueOf( task.getTaskID() ) + "&" +  task.getCommand());
+                                        System.out.println("Responding with task");
                                 }
                                 response.setEntity(stringEntity); 
                         }
@@ -171,9 +176,9 @@ String parseHttpClientRequest(String httpRequest) {
                 for (int i = 0; i < taskCommandsList.length; i++) {
                         tasksList.add(new Task(jobID, Integer.parseInt(taskIDsList[i]), taskCommandsList[i]));
                 }
-                jobMap.putJob(jobCounter, tasksList);
+                int sJobID = jobMap.putJob(jobCounter, tasksList);
                 
-                return "new-job:"+tasksList.size();
+                return "new-job:"+ Integer.toString(sJobID) + ":" + tasksList.size();
         }
         else {
                 System.err.println("Invalid HTTP request: " + result);

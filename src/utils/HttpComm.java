@@ -8,6 +8,8 @@ package utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.http.HttpEntity;
@@ -30,39 +32,39 @@ public class HttpComm {
     public static String probe( String workerURL ) throws Exception { 
         // TODO: handle probe result
         
-        Map<String, String> postArguments = new HashMap();
+        Map<String, String> postArguments = new LinkedHashMap();
         postArguments.put( "probe", "yes");
         String s = schedulerPost( workerURL, postArguments );
         return s;
     }
     
     public static Map<String, String> multiProbe( List<String> workersList ) throws Exception {
-        Map<String, String> results = new HashMap<>();
+        Map<String, String> results = new LinkedHashMap<>();
         for ( String workerURL : workersList ) 
                 results.put(workerURL, probe(workerURL));
         return results;
     }
     
-    public static Map<String, String> lateBindingMultiProbe(List<String> workersList, int jobID) throws Exception {
+    public static List<String> lateBindingMultiProbe(List<String> workersList, int jobID) throws Exception {
         StringBuilder thisSchedulerURL = new StringBuilder("http://");
         thisSchedulerURL.append(hostname).append(":").append(port).toString();
         
-        Map<String, String> results = new HashMap<>();
-        Map<String, String> postArguments = new HashMap();
+        List<String> results = new LinkedList<>();
+        Map<String, String> postArguments = new LinkedHashMap();
         
         postArguments.put( "probe", "yes" );
         postArguments.put( "scheduler-url", thisSchedulerURL.toString() );
         postArguments.put( "job-id", Integer.toString(jobID) );
         
         for ( String workerURL : workersList ) 
-                results.put(workerURL, schedulerPost( workerURL, postArguments ));
+                results.add(workerURL + schedulerPost( workerURL, postArguments ));
         
         return results;
     }
     
     public static String sendTask( String workerURL, String jobID, String taskCommand ) throws Exception {
         // TODO: handle worker response for task completion
-        Map<String, String> postArguments = new HashMap();
+        Map<String, String> postArguments = new LinkedHashMap();
         postArguments.put( "job-id", jobID );
         postArguments.put( "task-command", taskCommand );
         String s = schedulerPost( workerURL, postArguments );
@@ -70,7 +72,7 @@ public class HttpComm {
     }
     
     public static String heartbeat( String workerURL ) throws Exception {
-        Map<String, String> postArguments = new HashMap();
+        Map<String, String> postArguments = new LinkedHashMap();
         postArguments.put( "heartbeat", "yes");
         String s = schedulerPost( workerURL, postArguments );
         return s;
@@ -92,7 +94,7 @@ public class HttpComm {
                 httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 
                 try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
-                        System.out.println(response2.getStatusLine());
+                        //System.out.println(response2.getStatusLine());
                         HttpEntity entity2 = response2.getEntity();
                         String s = EntityUtils.toString(entity2);
         //                byte[] entityContent = EntityUtils.toByteArray(entity2);

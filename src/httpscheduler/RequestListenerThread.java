@@ -7,7 +7,6 @@
 package httpscheduler;
 
 import utils.WorkerManager;
-import utils.AtomicCounter;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -16,7 +15,7 @@ import java.io.InterruptedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.net.ssl.SSLServerSocketFactory;
 import org.apache.http.HttpConnectionFactory;
@@ -79,7 +78,7 @@ import java.util.logging.Logger;
                 }
                 WorkerManager.printWorkerMap();
 
-                Map<Integer, String[]> jobMap = new HashMap<>();
+                Map<Integer, String[]> jobMap = new LinkedHashMap<>();
                 //jobMap.put(1, new String[1000]);
                 Thread workerStatusThread = new UpdateWorkerStatusThread();
                 workerStatusThread.start();

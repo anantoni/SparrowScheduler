@@ -19,7 +19,7 @@ public class UpdateWorkerStatusThread extends Thread {
     public void run() {
         while (true) {
                 try {
-                        Thread.sleep(5000);
+                        Thread.sleep(30000);
                 } catch (InterruptedException ex) {
                         Logger.getLogger(UpdateWorkerStatusThread.class.getName()).log(Level.SEVERE, null, ex);
                 }

@@ -63,7 +63,7 @@ public class HttpScheduler {
         SSLServerSocketFactory sf = null;
         // SSL code removed as it is not needed
 
-        // create a thread to listen for possible scheduler available connections
+        // create a thread to listen for possible client available connections
         //Thread t = new RequestListenerThread(port, httpService, sf);
         Thread t = new LateBindingRequestListenerThread(port, httpService, sf);
         System.out.println("Request Listener Thread created");

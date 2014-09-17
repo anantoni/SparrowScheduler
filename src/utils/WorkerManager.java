@@ -9,7 +9,7 @@ package utils;
 import httpscheduler.TaskCommThread;
 import java.net.SocketException;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +30,7 @@ public class WorkerManager {
     private static final Lock write = readWriteLock.writeLock();
     
     public WorkerManager(List<String> workerList) {
-        workerMap = new HashMap<>();
+        workerMap = new LinkedHashMap<>();
         write.lock();
         for (String workerURL :workerList) {
                 try {
@@ -57,7 +57,7 @@ public class WorkerManager {
     }
     
     public static void useWorkerList(List<String> workerList) {
-        workerMap = new HashMap<>();
+        workerMap = new LinkedHashMap<>();
         write.lock();
         for (String workerURL :workerList) {
                 try {   

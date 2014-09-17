@@ -6,7 +6,7 @@
 package utils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -19,7 +19,7 @@ public class JobMap {
     Map<Integer, BlockingQueue<Task>> jobMap;
     
     public JobMap() {
-        jobMap = new HashMap<>();
+        jobMap = new LinkedHashMap<>();
     }
     
     public synchronized int putJob(AtomicCounter jobID, ArrayList<Task> tasksList) {
@@ -28,7 +28,7 @@ public class JobMap {
         tasksQueue.addAll(tasksList);
         jobMap.put(jobID.value(), tasksQueue);
         
-        return 0;
+        return jobID.value();
     }
     
     public synchronized int putTask(int jobID, Task task) {
