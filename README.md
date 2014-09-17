@@ -5,8 +5,10 @@ SparrowScheduler
 2) Implememented PerTaskSamplingSchedulingPolicy
 3) Implemented BatchSamplingSchedulingPolicy
 
-TODO: Late Binding, Job Stealing, use Scheduler as multi-threaded server
-
-Potential improvements:
--- Use protobuf or thrift.
--- Fix requirement for at least two active workers? Downgrade policies?
+TODO:
+-- Job Stealing.
+-- Use Scheduler as multi-threaded server.
+-- Fix requirement for at least two active workers? Downgrade policies? 
+-- Improve fault tolerance.
+-- Keep statistics log on scheduler and worker side.
+-- Add time metrics.
