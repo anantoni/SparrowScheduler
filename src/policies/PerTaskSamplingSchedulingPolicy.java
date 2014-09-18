@@ -36,13 +36,13 @@ public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
         List<String> keys  = new ArrayList<>(workerMap.keySet());
         
         if (Collections.frequency(workerMap.values(), "OK") == 1) {
-                for (String workerURL : workerMap.keySet()) 
-                        if (workerMap.get(workerURL).equals("OK")) 
-                            return workerURL;
+            for (String workerURL : workerMap.keySet()) 
+                    if (workerMap.get(workerURL).equals("OK")) 
+                        return workerURL;
         }
         else if (Collections.frequency(workerMap.values(), "OK") == 0) {
-                System.err.println("CRITICAL: All workers down - Exiting ");
-                System.exit(-1);
+            System.err.println("CRITICAL: All workers down - Exiting ");
+            System.exit(-1);
         }
         // Select a random active worker
         String workerURL = "";
@@ -60,8 +60,8 @@ public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
         
         String result = "";
         try {
-                result = HttpComm.probe(workerURL);
-                System.out.println("Worker " + workerURL + ": " + result);
+            result = HttpComm.probe(workerURL);
+            System.out.println("Worker " + workerURL + ": " + result);
         } catch (Exception ex) {
             Logger.getLogger(PerTaskSamplingSchedulingPolicy.class.getName()).log(Level.SEVERE, null, ex);
         }

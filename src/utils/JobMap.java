@@ -22,13 +22,13 @@ public class JobMap {
         jobMap = new LinkedHashMap<>();
     }
     
-    public synchronized int putJob(AtomicCounter jobID, ArrayList<Task> tasksList) {
-        jobID.increment();
+    public synchronized int putJob(ArrayList<Task> tasksList) {
+        int jobID = AtomicCounter.increment();
         BlockingQueue tasksQueue = new LinkedBlockingQueue<>();
         tasksQueue.addAll(tasksList);
-        jobMap.put(jobID.value(), tasksQueue);
+        jobMap.put(jobID, tasksQueue);
         
-        return jobID.value();
+        return jobID;
     }
     
     public synchronized int putTask(int jobID, Task task) {

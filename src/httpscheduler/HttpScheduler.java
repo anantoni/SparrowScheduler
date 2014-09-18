@@ -18,7 +18,6 @@ import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
-import utils.AtomicCounter;
 import utils.JobMap;
 
 /**
@@ -39,14 +38,12 @@ public class HttpScheduler {
             System.exit(-1);
         }
         
-        
         int fixedExecutorSize = 4;
         
         //Creating fixed size executor
         ThreadPoolExecutor taskCommExecutor = new ThreadPoolExecutor(fixedExecutorSize, fixedExecutorSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         // Both of these values are mainly used in Late Binding
         JobMap jobMap = new JobMap();
-        AtomicCounter jobCounter = new AtomicCounter();
 
         // Set port number
         int port = Integer.parseInt(args[0]);
@@ -65,7 +62,7 @@ public class HttpScheduler {
         UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
         // Different handlers for late binding and generic cases
         if (mode.equals("late"))
-                reqistry.register("*", new LateBindingRequestHandler(taskCommExecutor, jobMap, jobCounter));
+                reqistry.register("*", new LateBindingRequestHandler(taskCommExecutor, jobMap));
         else
                 reqistry.register("*", new GenericRequestHandler(taskCommExecutor, mode));
         

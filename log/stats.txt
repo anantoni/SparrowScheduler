@@ -1,0 +1,13 @@
+Accepted job #1 - number of tasks: 194
+Accepted job #2 - number of tasks: 204
+Accepted job #3 - number of tasks: 161
+Accepted job #4 - number of tasks: 208
+Accepted job #5 - number of tasks: 151
+Accepted job #6 - number of tasks: 240
+Accepted job #7 - number of tasks: 201
+Accepted job #8 - number of tasks: 296
+Accepted job #9 - number of tasks: 335
+Accepted job #10 - number of tasks: 257
+Accepted job #11 - number of tasks: 217
+Accepted job #12 - number of tasks: 233
+Accepted job #13 - number of tasks: 214

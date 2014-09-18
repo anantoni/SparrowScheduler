@@ -12,17 +12,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 public class AtomicCounter {
-    private final AtomicInteger c = new AtomicInteger(0);
+    private static final AtomicInteger c = new AtomicInteger(0);
 
-    public void increment() {
-        c.incrementAndGet();
+    public static int increment() {
+        return c.incrementAndGet();
     }
 
-    public void decrement() {
-        c.decrementAndGet();
+    public static int decrement() {
+        return c.decrementAndGet();
     }
 
-    public int value() {
+    public static int value() {
         return c.get();
     }
 

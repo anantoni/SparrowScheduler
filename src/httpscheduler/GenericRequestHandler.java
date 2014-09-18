@@ -31,6 +31,8 @@ import policies.BatchSamplingSchedulingPolicy;
 import policies.PerTaskSamplingSchedulingPolicy;
 import policies.RandomSchedulingPolicy;
 import policies.SchedulingPolicy;
+import utils.AtomicCounter;
+import utils.StatsLog;
 
 /**
  *
@@ -166,7 +168,7 @@ class GenericRequestHandler implements HttpRequestHandler  {
                 for (int i = 0; i < taskCommandsList.length; i++) {
                         tasksList.add(new Task(jobID, Integer.parseInt(taskIDsList[i]), taskCommandsList[i]));
                 }
-            
+                StatsLog.writeToLog("Accepted job #" + AtomicCounter.increment() + " - number of tasks: " + tasksList.size());
         }
         return tasksList;
     }

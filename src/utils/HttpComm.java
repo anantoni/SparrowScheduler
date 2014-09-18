@@ -82,20 +82,19 @@ public class HttpComm {
     public static String schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             
-                HttpPost httpPost = new HttpPost( workerURL );
-                List <NameValuePair> nvps = new ArrayList <>();
-                postArguments.keySet().stream().forEach((key) -> { 
-                    nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
-                });
-                
-                httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+            HttpPost httpPost = new HttpPost( workerURL );
+            List <NameValuePair> nvps = new ArrayList <>();
+            postArguments.keySet().stream().forEach((key) -> { 
+                nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
+            });
+            httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 
-                try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
-                        HttpEntity entity2 = response2.getEntity();
-                        String s = EntityUtils.toString(entity2);
-                        EntityUtils.consume(entity2);
-                        return s;
-                }
+            try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
+                HttpEntity entity2 = response2.getEntity();
+                String s = EntityUtils.toString(entity2);
+                EntityUtils.consume(entity2);
+                return s;
+            }
         }
     }
 }
