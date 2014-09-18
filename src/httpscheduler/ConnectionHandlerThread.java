@@ -18,39 +18,38 @@ import org.apache.http.protocol.HttpService;
  *
  * @author thomas
  */
-    class ConnectionHandlerThread extends Thread {
+class ConnectionHandlerThread extends Thread {
 
-        private final HttpService httpservice;
-        private final HttpServerConnection conn;
+    private final HttpService httpservice;
+    private final HttpServerConnection conn;
 
-        ConnectionHandlerThread(
-                final HttpService httpservice,
-                final HttpServerConnection conn) {
-            super();
-            this.httpservice = httpservice;
-            this.conn = conn;
-            System.out.println("\tConnection handler thread created");
-        }
-
-        @Override
-        public void run() {
-            System.out.println("\tNew connection handler thread is running");
-            HttpContext context = new BasicHttpContext(null);
-            try {
-                while (!Thread.interrupted() && this.conn.isOpen()) {
-                    this.httpservice.handleRequest(this.conn, context);
-                }
-            } catch (ConnectionClosedException ex) {
-                System.err.println("Client closed connection");
-            } catch (IOException ex) {
-                System.err.println("I/O error: " + ex.getMessage());
-            } catch (HttpException ex) {
-                System.err.println("Unrecoverable HTTP protocol violation: " + ex.getMessage());
-            } finally {
-                try {
-                    this.conn.shutdown();
-                } catch (IOException ignore) {}
-            }
-        }
-
+    ConnectionHandlerThread(
+            final HttpService httpservice,
+            final HttpServerConnection conn) {
+        super();
+        this.httpservice = httpservice;
+        this.conn = conn;
+        System.out.println("\tConnection handler thread created");
     }
+
+    @Override
+    public void run() {
+        System.out.println("\tNew connection handler thread is running");
+        HttpContext context = new BasicHttpContext(null);
+        try {
+            while (!Thread.interrupted() && this.conn.isOpen()) {
+                this.httpservice.handleRequest(this.conn, context);
+            }
+        } catch (ConnectionClosedException ex) {
+            System.err.println("Client closed connection");
+        } catch (IOException ex) {
+            System.err.println("I/O error: " + ex.getMessage());
+        } catch (HttpException ex) {
+            System.err.println("Unrecoverable HTTP protocol violation: " + ex.getMessage());
+        } finally {
+            try {
+                this.conn.shutdown();
+            } catch (IOException ignore) {}
+        }
+    }
+}
