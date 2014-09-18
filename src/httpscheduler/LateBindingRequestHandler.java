@@ -50,78 +50,78 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
+            final HttpRequest request,
+            final HttpResponse response,
+            final HttpContext context) throws HttpException, IOException {
 
-                String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
-                if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
-                        throw new MethodNotSupportedException(method + " method not supported");
-                }
+            String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
+            if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
+                    throw new MethodNotSupportedException(method + " method not supported");
+            }
 
-                StringEntity stringEntity;
-                if (request instanceof HttpEntityEnclosingRequest) {
-                    HttpEntity httpEntity = ((HttpEntityEnclosingRequest) request).getEntity();
-                    String entity = EntityUtils.toString(httpEntity);
-                    System.out.println("Incoming entity content (string): " + entity);
+            StringEntity stringEntity;
+            if (request instanceof HttpEntityEnclosingRequest) {
+                HttpEntity httpEntity = ((HttpEntityEnclosingRequest) request).getEntity();
+                String entity = EntityUtils.toString(httpEntity);
+                System.out.println("Incoming entity content (string): " + entity);
 
-                    // Parse HTTP request
-                    String parseResult = parseHttpClientRequest(entity);
+                // Parse HTTP request
+                String parseResult = parseHttpClientRequest(entity);
 
-                    // if new job received from a client, start executing late binding policy
-                    if (parseResult.contains("new-job")) {
-                        WorkerManager.getReadLock().lock();
-                        List<String> results;
-                        List workerURLs = new LinkedList<>();
-                        List toBeProbed = new LinkedList<>();
-                        workerURLs.addAll(WorkerManager.getWorkerMap().keySet());
-                        WorkerManager.getReadLock().unlock();
+                // if new job received from a client, start executing late binding policy
+                if (parseResult.contains("new-job")) {
+                    WorkerManager.getReadLock().lock();
+                    List<String> results;
+                    List workerURLs = new LinkedList<>();
+                    List toBeProbed = new LinkedList<>();
+                    workerURLs.addAll(WorkerManager.getWorkerMap().keySet());
+                    WorkerManager.getReadLock().unlock();
 
-                        String[] pieces = parseResult.split(":");
-                        //multiprobe d * #tasks where d = 2;
-                        int numberOfProbes = 2 * Integer.parseInt(pieces[2]);
-                        for (int i=0; i<numberOfProbes; i++) {
-                            Collections.shuffle(workerURLs);
-                            toBeProbed.add(workerURLs.get(0));
-                        }
-
-                        // Execute late binding multiprobe - we expect instant OK responses
-                        try {
-                            System.out.println("Needed probes: " + numberOfProbes);
-                            System.out.println("Sending :" + toBeProbed.size() + " probes");
-                            System.out.println("Job id: " + pieces[1]);
-                            results =  HttpComm.lateBindingMultiProbe(toBeProbed, Integer.parseInt(pieces[1]));
-                            for (String result : results)
-                                    System.out.println("Late binding probe result: " + result);
-                        } 
-                        catch (Exception ex) {
-                            Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+                    String[] pieces = parseResult.split(":");
+                    //multiprobe d * #tasks where d = 2;
+                    int numberOfProbes = 2 * Integer.parseInt(pieces[2]);
+                    for (int i=0; i<numberOfProbes; i++) {
+                        Collections.shuffle(workerURLs);
+                        toBeProbed.add(workerURLs.get(0));
                     }
-                    // else if probe response from worker, handle it accordingly
-                    else if (parseResult.contains("probe-response")) {
-                        System.out.println("Received probe response.");
-                        String[] pieces = parseResult.split(":");
-                        int jobID = Integer.parseInt(pieces[1]);
-                        BlockingQueue<Task> taskQueue = jobMap.getTaskQueue(jobID);
 
-                        // send NOOP if task queue empty for specified job
-                        if (taskQueue.isEmpty()) {
-                            response.setStatusCode(HttpStatus.SC_OK);
-                            stringEntity = new StringEntity("NOOP");
-                            System.out.println("Responding with NOOP");
-                        }
-                        // else send job id, task id and task commmand to worker
-                        else {
-                            Task task = taskQueue.remove();
-                            stringEntity = new StringEntity(String.valueOf(jobID) 
-                                                                                                    + "&" + task.getTaskID() 
-                                                                                                    + "&" +  task.getCommand());
-                            System.out.println("Responding with task");
-                        }
-                        response.setEntity(stringEntity); 
+                    // Execute late binding multiprobe - we expect instant OK responses
+                    try {
+                        System.out.println("Needed probes: " + numberOfProbes);
+                        System.out.println("Sending :" + toBeProbed.size() + " probes");
+                        System.out.println("Job id: " + pieces[1]);
+                        results =  HttpComm.lateBindingMultiProbe(toBeProbed, Integer.parseInt(pieces[1]));
+                        for (String result : results)
+                                System.out.println("Late binding probe result: " + result);
+                    } 
+                    catch (Exception ex) {
+                        Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
+                // else if probe response from worker, handle it accordingly
+                else if (parseResult.contains("probe-response")) {
+                    System.out.println("Received probe response.");
+                    String[] pieces = parseResult.split(":");
+                    int jobID = Integer.parseInt(pieces[1]);
+                    BlockingQueue<Task> taskQueue = jobMap.getTaskQueue(jobID);
+
+                    // send NOOP if task queue empty for specified job
+                    if (taskQueue.isEmpty()) {
+                        response.setStatusCode(HttpStatus.SC_OK);
+                        stringEntity = new StringEntity("NOOP");
+                        System.out.println("Responding with NOOP");
+                    }
+                    // else send job id, task id and task commmand to worker
+                    else {
+                        Task task = taskQueue.remove();
+                        stringEntity = new StringEntity(String.valueOf(jobID) 
+                                                                                                + "&" + task.getTaskID() 
+                                                                                                + "&" +  task.getCommand());
+                        System.out.println("Responding with task");
+                    }
+                    response.setEntity(stringEntity); 
+                }
+            }
         }
 
 String parseHttpClientRequest(String httpRequest) {

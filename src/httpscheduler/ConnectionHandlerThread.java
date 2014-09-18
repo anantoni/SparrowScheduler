@@ -29,7 +29,6 @@ class ConnectionHandlerThread extends Thread {
         super();
         this.httpservice = httpservice;
         this.conn = conn;
-        System.out.println("\tConnection handler thread created");
     }
 
     @Override
