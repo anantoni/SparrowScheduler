@@ -2,9 +2,9 @@
 <hr>
 
 <ul>
- <li>Implemented RandomSchedulingPolicy</li>
-  <li>Implememented PerTaskSamplingSchedulingPolicy</li>
-  <li>Implemented BatchSamplingSchedulingPolicy</li>
+ <li>Implemented Random Scheduling Policy</li>
+  <li>Implememented Per Task Sampling Scheduling Policy</li>
+  <li>Implemented Batch Sampling Scheduling Policy</li>
   <li>Implemented Late Binding Scheduling Policy</li>
 </ul>
 TODO:<br>
