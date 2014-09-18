@@ -2,7 +2,7 @@
 <hr>
 
 <ul>
-1 <li>Implemented RandomSchedulingPolicy</li>
+ <li>Implemented RandomSchedulingPolicy</li>
   <li>Implememented PerTaskSamplingSchedulingPolicy</li>
   <li>Implemented BatchSamplingSchedulingPolicy</li>
   <li>Implemented Late Binding Scheduling Policy</li>
