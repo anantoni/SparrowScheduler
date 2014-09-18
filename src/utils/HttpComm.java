@@ -62,10 +62,11 @@ public class HttpComm {
         return results;
     }
     
-    public static String sendTask( String workerURL, String jobID, String taskCommand ) throws Exception {
+    public static String sendTask( String workerURL, String jobID, String taskID, String taskCommand ) throws Exception {
         // TODO: handle worker response for task completion
         Map<String, String> postArguments = new LinkedHashMap();
         postArguments.put( "job-id", jobID );
+        postArguments.put( "task-id", taskID);
         postArguments.put( "task-command", taskCommand );
         String s = schedulerPost( workerURL, postArguments );
         return s;
@@ -86,22 +87,12 @@ public class HttpComm {
                 postArguments.keySet().stream().forEach((key) -> { 
                     nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
                 });
-                //for ( String key : postArguments.keySet() ) 
-                //nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
-
-                //nvps.add(new BasicNameValuePair("username", "vip"));
-                //nvps.add(new BasicNameValuePair("password", "secret"));
+                
                 httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 
                 try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
-                        //System.out.println(response2.getStatusLine());
                         HttpEntity entity2 = response2.getEntity();
                         String s = EntityUtils.toString(entity2);
-        //                byte[] entityContent = EntityUtils.toByteArray(entity2);
-        //                String a = new String(entityContent);
-        //                System.out.println(a);
-                        // do something useful with the response body
-                        // and ensure it is fully consumed
                         EntityUtils.consume(entity2);
                         return s;
                 }

@@ -70,6 +70,7 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
                         // Parse HTTP request
                         String parseResult = parseHttpClientRequest(entity);
                         
+                        // if new job received from a client, start executing late binding policy
                         if (parseResult.contains("new-job")) {
                                 WorkerManager.getReadLock().lock();
                                 List<String> results;
@@ -99,19 +100,25 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
                                         Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
                                 }
                         }
+                        // else if probe response from worker, handle it accordingly
                         else if (parseResult.contains("probe-response")) {
                                 System.out.println("Received probe response.");
                                 String[] pieces = parseResult.split(":");
-                                BlockingQueue<Task> taskQueue = jobMap.getTaskQueue(Integer.parseInt(pieces[1]));
+                                int jobID = Integer.parseInt(pieces[1]);
+                                BlockingQueue<Task> taskQueue = jobMap.getTaskQueue(jobID);
                                 
+                                // send NOOP if task queue empty for specified job
                                 if (taskQueue.isEmpty()) {
                                         response.setStatusCode(HttpStatus.SC_OK);
                                         stringEntity = new StringEntity("NOOP");
                                         System.out.println("Responding with NOOP");
                                 }
+                                // else send job id, task id and task commmand to worker
                                 else {
                                         Task task = taskQueue.remove();
-                                        stringEntity = new StringEntity(String.valueOf( task.getTaskID() ) + "&" +  task.getCommand());
+                                        stringEntity = new StringEntity(String.valueOf( jobID) 
+                                                                                                                + "&" + task.getTaskID() 
+                                                                                                                + "&" +  task.getCommand());
                                         System.out.println("Responding with task");
                                 }
                                 response.setEntity(stringEntity); 
@@ -133,6 +140,7 @@ String parseHttpClientRequest(String httpRequest) {
         }
         String[] requestArguments = result.split("&");
         
+        // If probe-response from available worker
         if (requestArguments.length == 2) {
                 int jobID = 0;
                 String[] keyValuePair = requestArguments[0].split("=");
@@ -145,6 +153,7 @@ String parseHttpClientRequest(String httpRequest) {
                 
                 return "probe-response:" + jobID;
         }
+        // else if new job
         else if (requestArguments.length == 3) {
                 int jobID = 0;
                 String[] keyValuePair = requestArguments[0].split("=");
