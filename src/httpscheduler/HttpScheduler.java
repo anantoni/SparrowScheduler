@@ -38,11 +38,11 @@ public class HttpScheduler {
             System.exit(-1);
         }
         
-        int fixedExecutorSize = 4;
+        int fixedExecutorSize = 16;
         
         //Creating fixed size executor
         ThreadPoolExecutor taskCommExecutor = new ThreadPoolExecutor(fixedExecutorSize, fixedExecutorSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        // Both of these values are mainly used in Late Binding
+        // Used for late binding
         JobMap jobMap = new JobMap();
 
         // Set port number
@@ -70,11 +70,13 @@ public class HttpScheduler {
         HttpService httpService = new HttpService(httpproc, reqistry);
 
         SSLServerSocketFactory sf = null;
-        // SSL code removed as it is not needed
 
         // create a thread to listen for possible client available connections
-        //Thread t = new RequestListenerThread(port, httpService, sf);
-        Thread t = new LateBindingRequestListenerThread(port, httpService, sf);
+        Thread t;
+        if (mode.equals("late"))
+            t = new LateBindingRequestListenerThread(port, httpService, sf);
+        else 
+            t = new GenericRequestListenerThread(port, httpService, sf);
         System.out.println("Request Listener Thread created");
         t.setDaemon(false);
         t.start();

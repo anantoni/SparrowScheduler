@@ -90,23 +90,23 @@ class GenericRequestHandler implements HttpRequestHandler  {
                                         throw new IllegalArgumentException("Invalid mode: " + mode);
                         }
                         
-                        // Different handling for Batch Processing
-                        if (policy instanceof BatchSamplingSchedulingPolicy) {
-                                policy.selectBatchWorker(tasksList.size());
-                        }
-                        // Create communication thread
-                        for (Task taskToProcess : tasksList) {
-                                Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, policy);
-                                threadMonitor = taskCommExecutor.submit(taskCommExecutorThread);
-                        }
-// ---------> For Tom: Why do we need this?
-                        try {
-                                // the main thread should wait until the submitted thread
-                                // finishes its computation
-                                threadMonitor.get();
-                        } catch (InterruptedException | ExecutionException ex) {
-                            Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+//                        // Different handling for Batch Processing
+//                        if (policy instanceof BatchSamplingSchedulingPolicy) {
+//                                policy.selectBatchWorker(tasksList.size());
+//                        }
+//                        // Create communication thread
+//                        for (Task taskToProcess : tasksList) {
+//                                Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, policy);
+//                                threadMonitor = taskCommExecutor.submit(taskCommExecutorThread);
+//                        }
+//// ---------> For Tom: Why do we need this?
+//                        try {
+//                                // the main thread should wait until the submitted thread
+//                                // finishes its computation
+//                                threadMonitor.get();
+//                        } catch (InterruptedException | ExecutionException ex) {
+//                            Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
 
                         response.setStatusCode(HttpStatus.SC_OK);
                         stringEntity = new StringEntity("result:success");
@@ -145,29 +145,27 @@ class GenericRequestHandler implements HttpRequestHandler  {
                         assert keyValuePair[1].matches("[0-9]+");
                         jobID = Integer.parseInt(keyValuePair[1]);
                 }
-                else {
+                else 
                         System.err.println("Invalid argument - expecting job-id");
-                }
             
                 keyValuePair = requestArguments[1].split("=");
                 if ( keyValuePair[0].equals("task-commands") ) {
                         taskCommandsList = keyValuePair[1].split(",");
                 }
-                else {
+                else 
                         System.err.println("Invalid argument - expecting task commands");
-                }
             
                 keyValuePair = requestArguments[2].split("=");
                 if ( keyValuePair[0].equals("task-ids") ) {
                         taskIDsList = keyValuePair[1].split(",");
                 }
-                else {
+                else 
                         System.err.println("Invalid argument - expecting task-ids");
-                }
+             
                 assert(taskCommandsList != null && taskIDsList != null);
-                for (int i = 0; i < taskCommandsList.length; i++) {
+                for (int i = 0; i < taskCommandsList.length; i++) 
                         tasksList.add(new Task(jobID, Integer.parseInt(taskIDsList[i]), taskCommandsList[i]));
-                }
+                
                 StatsLog.writeToLog("Accepted job #" + AtomicCounter.increment() + " - number of tasks: " + tasksList.size());
         }
         return tasksList;

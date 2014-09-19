@@ -44,7 +44,7 @@ public class LateBindingRequestListenerThread extends Thread{
                 this.serversocket = sf != null ? sf.createServerSocket(port) : new ServerSocket(port);
                 this.httpService = httpService;
                 // only 4 connections can run concurrently
-                connectionHandlerExecutor = Executors.newFixedThreadPool(4);
+                connectionHandlerExecutor = Executors.newFixedThreadPool(16);
                 System.out.println("Request Listener Thread created");
         }
 
@@ -87,7 +87,7 @@ public class LateBindingRequestListenerThread extends Thread{
                                 // Initialize the pool
                                 Thread connectionHandler = new ConnectionHandlerThread(this.httpService, conn);             
 
-                                connectionHandler.setDaemon(true);
+                                connectionHandler.setDaemon(false);
                                 connectionHandlerExecutor.execute(connectionHandler);
                                 System.out.println("\tConnection Handler Thread created");
                         } catch (InterruptedIOException ex) {
