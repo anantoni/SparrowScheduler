@@ -64,7 +64,7 @@ class GenericRequestHandler implements HttpRequestHandler  {
                 if (request instanceof HttpEntityEnclosingRequest) {
                         HttpEntity httpEntity = ((HttpEntityEnclosingRequest) request).getEntity();
                         String entity = EntityUtils.toString(httpEntity);
-                        System.out.println("Incoming entity content (string): " + entity);
+                        //System.out.println("Incoming entity content (string): " + entity);
 
                         // Parse HTTP request
                         ArrayList <Task> tasksList = parseHttpClientRequest(entity);
@@ -90,19 +90,19 @@ class GenericRequestHandler implements HttpRequestHandler  {
                                         throw new IllegalArgumentException("Invalid mode: " + mode);
                         }
                         
-//                        // Different handling for Batch Processing
-//                        if (policy instanceof BatchSamplingSchedulingPolicy) {
-//                                policy.selectBatchWorker(tasksList.size());
-//                        }
-//                        // Create communication thread
-//                        for (Task taskToProcess : tasksList) {
-//                                Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, policy);
-//                                threadMonitor = taskCommExecutor.submit(taskCommExecutorThread);
-//                        }
-//// ---------> For Tom: Why do we need this?
+                        // Different handling for Batch Processing
+                        if (policy instanceof BatchSamplingSchedulingPolicy) {
+                                policy.selectBatchWorker(tasksList.size());
+                        }
+                        // Create communication thread
+                        for (Task taskToProcess : tasksList) {
+                                Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, policy);
+                                threadMonitor = taskCommExecutor.submit(taskCommExecutorThread);
+                        }
+// ---------> For Tom: Why do we need this?
 //                        try {
-//                                // the main thread should wait until the submitted thread
-//                                // finishes its computation
+//                                 the main thread should wait until the submitted thread
+//                                 finishes its computation
 //                                threadMonitor.get();
 //                        } catch (InterruptedException | ExecutionException ex) {
 //                            Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -127,7 +127,6 @@ class GenericRequestHandler implements HttpRequestHandler  {
         String result = "";
         try {
                 result = java.net.URLDecoder.decode(httpRequest, "UTF-8");
-                System.out.println("Decoded request: " + result);
         } catch (UnsupportedEncodingException ex) {
                 Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
         }

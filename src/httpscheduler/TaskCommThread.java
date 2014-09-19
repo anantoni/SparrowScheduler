@@ -36,7 +36,7 @@ public class TaskCommThread extends Thread {
     public void run() {
         boolean workerDown = false;
         String workerURL = policy.selectWorker();
-        System.out.println(workerURL);
+        //System.out.println(workerURL);
 
         try {
             task.setResult(HttpComm.sendTask(workerURL, String.valueOf(task.getJobID()), String.valueOf(task.getTaskID()), task.getCommand()));

@@ -33,7 +33,7 @@ class ConnectionHandlerThread extends Thread {
 
     @Override
     public void run() {
-        System.out.println("\tNew connection handler thread is running");
+        //System.out.println("\tNew connection handler thread is running");
         HttpContext context = new BasicHttpContext(null);
         try {
             while (!Thread.interrupted() && this.conn.isOpen()) {

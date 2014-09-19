@@ -15,7 +15,6 @@ import java.io.InterruptedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.net.ssl.SSLServerSocketFactory;
 import org.apache.http.HttpConnectionFactory;
@@ -49,7 +48,7 @@ import java.util.logging.Logger;
                 this.serversocket = sf != null ? sf.createServerSocket(port) : new ServerSocket(port);
                 this.httpService = httpService;
                 // only 4 connections can run concurrently
-                connectionHandlerExecutor = Executors.newFixedThreadPool(16);
+                connectionHandlerExecutor = Executors.newFixedThreadPool(100);
                 System.out.println("Request Listener Thread created");
         }
 
@@ -78,8 +77,6 @@ import java.util.logging.Logger;
                 }
                 WorkerManager.printWorkerMap();
 
-                Map<Integer, String[]> jobMap = new LinkedHashMap<>();
-                //jobMap.put(1, new String[1000]);
                 Thread workerStatusThread = new UpdateWorkerStatusThread();
                 workerStatusThread.start();
                 System.out.println("ready for connections");
@@ -92,9 +89,10 @@ import java.util.logging.Logger;
 
                                 // Initialize the pool
                                 Thread connectionHandler = new ConnectionHandlerThread(this.httpService, conn);             
-
-                                connectionHandler.setDaemon(true);
-                                connectionHandlerExecutor.execute(connectionHandler);
+                                connectionHandler.setDaemon(false);
+                                //connectionHandler.setDaemon(true);
+                                connectionHandler.start();
+//connectionHandlerExecutor.execute(connectionHandler);
                                 System.out.println("\tConnection Handler Thread created");
                         } catch (InterruptedIOException ex) {
                                 break;
