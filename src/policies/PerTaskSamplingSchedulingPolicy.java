@@ -61,7 +61,7 @@ public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
         String result = "";
         try {
             result = HttpComm.probe(workerURL);
-            System.out.println("Worker " + workerURL + ": " + result);
+            //System.out.println("Worker " + workerURL + ": " + result);
         } catch (Exception ex) {
             Logger.getLogger(PerTaskSamplingSchedulingPolicy.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -69,7 +69,7 @@ public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
         String result1 = "";
         try {
             result1 = HttpComm.probe(workerURL1);
-            System.out.println("Worker " + workerURL1 + ": " + result1);
+            //System.out.println("Worker " + workerURL1 + ": " + result1);
         } catch (Exception ex) {
             Logger.getLogger(PerTaskSamplingSchedulingPolicy.class.getName()).log(Level.SEVERE, null, ex);
         }
