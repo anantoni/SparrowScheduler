@@ -10,11 +10,14 @@ import utils.WorkerManager;
 import utils.Task;
 import utils.HttpComm;
 import java.net.SocketException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.HttpHostConnectException;
 import policies.*;
+import utils.StatsLog;
 
 /**
  *
@@ -40,6 +43,9 @@ public class TaskCommThread extends Thread {
 
         try {
             task.setResult(HttpComm.sendTask(workerURL, String.valueOf(task.getJobID()), String.valueOf(task.getTaskID()), task.getCommand()));
+             Date dNow = new Date( );
+            SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
+            StatsLog.writeToLog(ft.format(dNow) + " Sending job #" + task.getJobID() + "task #" + task.getTaskID() + " to worker: " + workerURL);
         } catch ( HttpHostConnectException | NoHttpResponseException ex) {
             WorkerManager.getWriteLock().lock();
             WorkerManager.getWorkerMap().put(workerURL, "DOWN");
