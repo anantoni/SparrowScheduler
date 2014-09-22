@@ -14,18 +14,16 @@ import java.util.logging.Logger;
  * @author anantoni
  */
 public class UpdateWorkerStatusThread extends Thread {
-        // Periodically update worker status
-        @Override
-        public void run() {
-                while (true) {
-                        try {
-                                Thread.sleep(30000);
-                        } catch (InterruptedException ex) {
-                                Logger.getLogger(UpdateWorkerStatusThread.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        WorkerManager.getWriteLock().lock();
-                        WorkerManager.updateWorkerStatus();
-                        WorkerManager.getWriteLock().unlock();
+    // Periodically update worker status
+    @Override
+    public void run() {
+        while (true) {
+                try {
+                        Thread.sleep(30000);
+                } catch (InterruptedException ex) {
+                        Logger.getLogger(UpdateWorkerStatusThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                WorkerManager.updateWorkerStatus();
         }
+    }
 }

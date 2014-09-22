@@ -26,24 +26,27 @@ import utils.StatsLog;
 public class TaskCommThread extends Thread {
 
     private final Task task;
-    private final SchedulingPolicy policy, backupPolicy;
+    private final String workerURL;
+    //private final SchedulingPolicy policy, backupPolicy;
 
-    TaskCommThread(Task task, SchedulingPolicy policy) {
+    TaskCommThread(Task task, String workerURL) {
         super();
         this.task = task;
-        this.policy = policy;
-        this.backupPolicy = new PerTaskSamplingSchedulingPolicy();
+        this.workerURL = workerURL;
+        //this.policy = policy;
+        //this.backupPolicy = new PerTaskSamplingSchedulingPolicy();
     }
-
+    
+    
     @Override
     public void run() {
-        boolean workerDown = false;
-        String workerURL = policy.selectWorker();
+        //boolean workerDown = false;
+        //String workerURL = policy.selectWorker();
         //System.out.println(workerURL);
 
         try {
             task.setResult(HttpComm.sendTask(workerURL, String.valueOf(task.getJobID()), String.valueOf(task.getTaskID()), task.getCommand()));
-             Date dNow = new Date( );
+            Date dNow = new Date( );
             SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
             StatsLog.writeToLog(ft.format(dNow) + " Sending job #" + task.getJobID() + "task #" + task.getTaskID() + " to worker: " + workerURL);
         } catch ( HttpHostConnectException | NoHttpResponseException ex) {
@@ -51,29 +54,29 @@ public class TaskCommThread extends Thread {
             WorkerManager.getWorkerMap().put(workerURL, "DOWN");
             WorkerManager.getWriteLock().unlock();
             Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
-            workerDown = true;
+            //workerDown = true;
         } 
         catch ( SocketException ex) {
             WorkerManager.getWriteLock().lock();
             WorkerManager.getWorkerMap().put(workerURL, "DOWN");
             WorkerManager.getWriteLock().unlock();
             Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
-            workerDown = true;
+            //workerDown = true;
         } catch (Exception ex) {
             Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         // This part is executed only if the worker selected by the primary policy goes down
         // It is guaranteed that as long as worker is up the task will be completed eventually
-        while (workerDown == true) {
-            try {
-                    workerURL = backupPolicy.selectWorker();
-                    task.setResult(HttpComm.sendTask(workerURL, String.valueOf(task.getJobID()), String.valueOf( task.getTaskID() ), task.getCommand()));
-                    workerDown = false;
-            } catch (Exception ex) {
-                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+//        while (workerDown == true) {
+//            try {
+//                    workerURL = backupPolicy.selectWorker();
+//                    task.setResult(HttpComm.sendTask(workerURL, String.valueOf(task.getJobID()), String.valueOf( task.getTaskID() ), task.getCommand()));
+//                    workerDown = false;
+//            } catch (Exception ex) {
+//                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//        }
     }
 };
 

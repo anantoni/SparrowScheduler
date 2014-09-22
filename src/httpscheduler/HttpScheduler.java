@@ -38,7 +38,7 @@ public class HttpScheduler {
             System.exit(-1);
         }
         
-        int fixedExecutorSize = 100;
+        int fixedExecutorSize = 8;
         
         //Creating fixed size executor
         ThreadPoolExecutor taskCommExecutor = new ThreadPoolExecutor(fixedExecutorSize, fixedExecutorSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());

@@ -48,7 +48,7 @@ import java.util.logging.Logger;
                 this.serversocket = sf != null ? sf.createServerSocket(port) : new ServerSocket(port);
                 this.httpService = httpService;
                 // only 4 connections can run concurrently
-                connectionHandlerExecutor = Executors.newFixedThreadPool(100);
+                connectionHandlerExecutor = Executors.newFixedThreadPool(4);
                 System.out.println("Request Listener Thread created");
         }
 
@@ -77,8 +77,8 @@ import java.util.logging.Logger;
                 }
                 WorkerManager.printWorkerMap();
 
-                Thread workerStatusThread = new UpdateWorkerStatusThread();
-                workerStatusThread.start();
+//                Thread workerStatusThread = new UpdateWorkerStatusThread();
+//                workerStatusThread.start();
                 System.out.println("ready for connections");
                 while (!Thread.interrupted()) {
                         try {
@@ -89,11 +89,11 @@ import java.util.logging.Logger;
 
                                 // Initialize the pool
                                 Thread connectionHandler = new ConnectionHandlerThread(this.httpService, conn);             
-                                connectionHandler.setDaemon(false);
+                                connectionHandler.setDaemon(true);
                                 //connectionHandler.setDaemon(true);
                                 connectionHandler.start();
-//connectionHandlerExecutor.execute(connectionHandler);
-                                System.out.println("\tConnection Handler Thread created");
+                                //connectionHandlerExecutor.execute(connectionHandler);
+                                //System.out.println("\tConnection Handler Thread created");
                         } catch (InterruptedIOException ex) {
                                 break;
                         } catch (IOException e) {

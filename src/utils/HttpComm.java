@@ -14,14 +14,18 @@ import java.util.List;
 import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-
+        
 /**
  *
  * @author anantoni
@@ -29,6 +33,21 @@ import org.apache.http.util.EntityUtils;
 public class HttpComm {
     static String hostname = "127.0.0.1";
     static Integer port = new Integer(51000);
+    static final CloseableHttpClient httpclient;
+    static {
+        // Create an HttpClient with the ThreadSafeClientConnManager.
+        // This connection manager must be used if more than one thread will
+        // be using the HttpClient.
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(100);
+
+        httpclient = HttpClients.custom().setConnectionManager(cm).build();
+    }
+    
+    public static HttpClient getHttpClient() {
+        return httpclient;
+    }
+    
     public static String probe( String workerURL ) throws Exception { 
         // TODO: handle probe result
         
@@ -80,8 +99,7 @@ public class HttpComm {
     }
     
     public static String schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
-        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            
+            HttpContext context = new BasicHttpContext();
             HttpPost httpPost = new HttpPost( workerURL );
             List <NameValuePair> nvps = new ArrayList <>();
             postArguments.keySet().stream().forEach((key) -> { 
@@ -89,12 +107,11 @@ public class HttpComm {
             });
             httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 
-            try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
+            try (CloseableHttpResponse response2 = httpclient.execute(httpPost, context)) {
                 HttpEntity entity2 = response2.getEntity();
                 String s = EntityUtils.toString(entity2);
                 EntityUtils.consume(entity2);
                 return s;
-            }
         }
     }
 }

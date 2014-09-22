@@ -9,7 +9,9 @@ package httpscheduler;
 import utils.Task;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -94,11 +96,32 @@ class GenericRequestHandler implements HttpRequestHandler  {
                         if (policy instanceof BatchSamplingSchedulingPolicy) {
                                 policy.selectBatchWorker(tasksList.size());
                         }
+                        
                         // Create communication thread
+                        SendTaskThread[] threads = new SendTaskThread[tasksList.size()];
+                        System.out.println("number of send task threads: " + threads.length);
+                        int i = 0;
                         for (Task taskToProcess : tasksList) {
-                                Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, policy);
-                                threadMonitor = taskCommExecutor.submit(taskCommExecutorThread);
+                            String workerURL = policy.selectWorker();
+                            Date dNow = new Date( );
+                            SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
+                            StatsLog.writeToLog( ft.format(dNow) + "Task scheduled");
+                            //Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, workerURL);
+                            threads[i] = new SendTaskThread(taskToProcess, workerURL);
+                            threads[i].start();
+                            //threadMonitor = taskCommExecutor.submit(taskCommExecutorThread);
+                            i++;
                         }
+                        
+//                    for (SendTaskThread thread : threads) {
+//                        try {
+//                            thread.join();
+//                        } catch (InterruptedException ex) {
+//                            Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
+//                    }
+//                        
+                        
 // ---------> For Tom: Why do we need this?
 //                        try {
 //                                 the main thread should wait until the submitted thread

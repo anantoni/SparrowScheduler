@@ -26,7 +26,6 @@ public class RandomSchedulingPolicy implements SchedulingPolicy {
 
         @Override
         public String selectWorker() {
-            
                 WorkerManager.getReadLock().lock();
                 Map<String,String> workerMap = WorkerManager.getWorkerMap();
                  if (Collections.frequency(workerMap.values(), "OK") == 1) {
