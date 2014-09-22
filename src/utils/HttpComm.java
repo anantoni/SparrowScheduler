@@ -7,7 +7,6 @@
 package utils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -107,11 +106,16 @@ public class HttpComm {
             });
             httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 
+            String s = "";
             try (CloseableHttpResponse response2 = httpclient.execute(httpPost, context)) {
                 HttpEntity entity2 = response2.getEntity();
-                String s = EntityUtils.toString(entity2);
+                s = EntityUtils.toString(entity2);
                 EntityUtils.consume(entity2);
-                return s;
-        }
+            }
+            finally {
+                httpPost.releaseConnection();
+            }
+            return s;
+        
     }
 }

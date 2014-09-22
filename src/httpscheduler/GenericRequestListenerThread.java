@@ -77,8 +77,8 @@ import java.util.logging.Logger;
                 }
                 WorkerManager.printWorkerMap();
 
-//                Thread workerStatusThread = new UpdateWorkerStatusThread();
-//                workerStatusThread.start();
+                Thread workerStatusThread = new UpdateWorkerStatusThread();
+                workerStatusThread.start();
                 System.out.println("ready for connections");
                 while (!Thread.interrupted()) {
                         try {
