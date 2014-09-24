@@ -107,8 +107,8 @@ class GenericRequestHandler implements HttpRequestHandler  {
                             SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
                             StatsLog.writeToLog( ft.format(dNow) + "Task scheduled");
                             Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, workerURL);
-//                            threadMonitor = taskCommExecutor.submit(taskCommExecutorThread);
-                            taskCommExecutorThread.start();
+                            taskCommExecutor.execute(taskCommExecutorThread);
+                            //taskCommExecutorThread.start();
 
 //                            threads[i] = new SendTaskThread(taskToProcess, workerURL);
 //                            threads[i].start();

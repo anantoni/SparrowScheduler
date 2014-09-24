@@ -15,7 +15,6 @@ import java.io.InterruptedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Map;
 import javax.net.ssl.SSLServerSocketFactory;
 import org.apache.http.HttpConnectionFactory;
 import org.apache.http.HttpServerConnection;
@@ -48,7 +47,7 @@ import java.util.logging.Logger;
                 this.serversocket = sf != null ? sf.createServerSocket(port) : new ServerSocket(port);
                 this.httpService = httpService;
                 // only 4 connections can run concurrently
-                connectionHandlerExecutor = Executors.newFixedThreadPool(4);
+                connectionHandlerExecutor = Executors.newFixedThreadPool(100);
                 System.out.println("Request Listener Thread created");
         }
 
@@ -91,8 +90,8 @@ import java.util.logging.Logger;
                                 Thread connectionHandler = new ConnectionHandlerThread(this.httpService, conn);             
                                 connectionHandler.setDaemon(true);
                                 //connectionHandler.setDaemon(true);
-                                connectionHandler.start();
-                                //connectionHandlerExecutor.execute(connectionHandler);
+                                //connectionHandler.start();
+                                connectionHandlerExecutor.execute(connectionHandler);
                                 //System.out.println("\tConnection Handler Thread created");
                         } catch (InterruptedIOException ex) {
                                 break;
