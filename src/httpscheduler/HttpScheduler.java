@@ -41,7 +41,7 @@ public class HttpScheduler {
         int fixedExecutorSize = 8;
         
         //Creating fixed size executor
-        ThreadPoolExecutor taskCommExecutor = new ThreadPoolExecutor(fixedExecutorSize, fixedExecutorSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        ThreadPoolExecutor taskCommExecutor = new ThreadPoolExecutor(fixedExecutorSize, fixedExecutorSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
         // Used for late binding
         JobMap jobMap = new JobMap();
 
