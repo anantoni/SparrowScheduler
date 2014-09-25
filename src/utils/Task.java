@@ -11,35 +11,45 @@ package utils;
  * @author anantoni
  */
 public class Task {
-    private final int jobID;
-    private final int taskID;
-    private final String taskCommand;
-    private String taskResult;
+    private final int taskDuration;
     
-    public Task(int jobID, int taskID, String taskCommand) {
-        this.jobID = jobID;
-        this.taskID = taskID;
-        this.taskCommand = taskCommand;
+    public Task(int taskDuration) {
+        this.taskDuration = taskDuration; 
     }
     
-    public void setResult(String taskResult) {
-        this.taskResult = taskResult;
+    public int getDuration() {
+        return taskDuration;
     }
     
-    public String getResult() {
-        return this.taskResult;
-    }
-    
-    public int getJobID() {
-        return jobID;
-    }
-    
-    public int getTaskID() {
-        return taskID;
-    }
-    
-    public String getCommand() {
-        return taskCommand;
-    }
+//    private final int jobID;
+//    private final int taskID;
+//    private final String taskCommand;
+//    private String taskResult;
+//    
+//    public Task(int jobID, int taskID, String taskCommand) {
+//        this.jobID = jobID;
+//        this.taskID = taskID;
+//        this.taskCommand = taskCommand;
+//    }
+//    
+//    public void setResult(String taskResult) {
+//        this.taskResult = taskResult;
+//    }
+//    
+//    public String getResult() {
+//        return this.taskResult;
+//    }
+//    
+//    public int getJobID() {
+//        return jobID;
+//    }
+//    
+//    public int getTaskID() {
+//        return taskID;
+//    }
+//    
+//    public String getCommand() {
+//        return taskCommand;
+//    }
     
 }

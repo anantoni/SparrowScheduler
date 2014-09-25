@@ -76,7 +76,7 @@ public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
         assert result.matches("[0-9]+");
         assert result1.matches("[0-9]+");
         
-        return Integer.parseInt(result) > Integer.parseInt(result1) ? workerURL : workerURL1;
+        return Integer.parseInt(result) > Integer.parseInt(result1) ? workerURL1 : workerURL;
         
     }   
 

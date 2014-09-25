@@ -76,12 +76,10 @@ public class HttpComm {
         return results;
     }
     
-    public static String sendTask( String workerURL, String jobID, String taskID, String taskCommand ) throws Exception {
+    public static String sendTask( String workerURL, String taskDuration) throws Exception {
         // TODO: handle worker response for task completion
         Map<String, String> postArguments = new LinkedHashMap();
-        postArguments.put( "job-id", jobID );
-        postArguments.put( "task-id", taskID);
-        postArguments.put( "task-command", taskCommand );
+        postArguments.put( "task-duration", taskDuration );
         String s = schedulerPost( workerURL, postArguments );
         return s;
     }

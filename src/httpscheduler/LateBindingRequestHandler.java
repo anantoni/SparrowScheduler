@@ -114,12 +114,12 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
                     // else send job id, task id and task commmand to worker
                     else {
                         Task task = taskQueue.remove();
-                        stringEntity = new StringEntity(String.valueOf(jobID) 
-                                                                                                + "&" + task.getTaskID() 
-                                                                                                + "&" +  task.getCommand());
+////                        stringEntity = new StringEntity(String.valueOf(jobID) 
+////                                                                                                + "&" + task.getTaskID() 
+////                                                                                                + "&" +  task.getCommand());
                         System.out.println("Responding with task");
                     }
-                    response.setEntity(stringEntity); 
+//                    response.setEntity(stringEntity); 
                 }
             }
         }
@@ -181,7 +181,7 @@ String parseHttpClientRequest(String httpRequest) {
                 }
                 assert(taskCommandsList != null && taskIDsList != null);
                 for (int i = 0; i < taskCommandsList.length; i++) {
-                        tasksList.add(new Task(jobID, Integer.parseInt(taskIDsList[i]), taskCommandsList[i]));
+                        //tasksList.add(new Task(jobID, Integer.parseInt(taskIDsList[i]), taskCommandsList[i]));
                 }
                 int sJobID = jobMap.putJob(tasksList);
                 StatsLog.writeToLog("Accepted job #" + sJobID + " - number of tasks: " + tasksList.size());

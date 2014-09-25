@@ -108,31 +108,8 @@ class GenericRequestHandler implements HttpRequestHandler  {
                             StatsLog.writeToLog( ft.format(dNow) + "Task scheduled");
                             Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, workerURL);
                             taskCommExecutor.execute(taskCommExecutorThread);
-                            //taskCommExecutorThread.start();
-
-//                            threads[i] = new SendTaskThread(taskToProcess, workerURL);
-//                            threads[i].start();
                             i++;
                         }
-                        
-//                    for (SendTaskThread thread : threads) {
-//                        try {
-//                            thread.join();
-//                        } catch (InterruptedException ex) {
-//                            Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
-//                        }
-//                    }
-//                        
-                        
-// ---------> For Tom: Why do we need this?
-//                        try {
-//                                 the main thread should wait until the submitted thread
-//                                 finishes its computation
-//                                threadMonitor.get();
-//                        } catch (InterruptedException | ExecutionException ex) {
-//                            Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
-//                        }
-
                         response.setStatusCode(HttpStatus.SC_OK);
                         stringEntity = new StringEntity("result:success");
                 } 
@@ -146,8 +123,6 @@ class GenericRequestHandler implements HttpRequestHandler  {
 
     ArrayList<Task> parseHttpClientRequest(String httpRequest) {
         ArrayList<Task> tasksList = new ArrayList<>();
-        String[] taskCommandsList = null;
-        String[] taskIDsList = null;
         
         String result = "";
         try {
@@ -162,33 +137,27 @@ class GenericRequestHandler implements HttpRequestHandler  {
                 return null; 
         }
         else if (requestArguments.length == 3) {
-                int jobID = 0;
-                String[] keyValuePair = requestArguments[0].split("=");
+                int taskDuration = -1;
+                int taskQuantity = -1;
                 
-                if ( keyValuePair[0].equals("job-id") ) {
-                        assert keyValuePair[1].matches("[0-9]+");
-                        jobID = Integer.parseInt(keyValuePair[1]);
+                String[] keyValuePair = requestArguments[0].split("=");
+                if ( keyValuePair[0].equals("task-duration") ) {
+                    assert keyValuePair[1].matches("[0-9]+");
+                    taskDuration = Integer.parseInt(keyValuePair[1]);
                 }
                 else 
-                        System.err.println("Invalid argument - expecting job-id");
+                        System.err.println("Invalid argument - task duration");
             
                 keyValuePair = requestArguments[1].split("=");
-                if ( keyValuePair[0].equals("task-commands") ) {
-                        taskCommandsList = keyValuePair[1].split(",");
+                if ( keyValuePair[0].equals("task-quantity") ) {
+                    assert keyValuePair[1].matches("[0-9]+");
+                    taskQuantity = Integer.parseInt(keyValuePair[1]);
                 }
                 else 
-                        System.err.println("Invalid argument - expecting task commands");
+                        System.err.println("Invalid argument - task quantity");
             
-                keyValuePair = requestArguments[2].split("=");
-                if ( keyValuePair[0].equals("task-ids") ) {
-                        taskIDsList = keyValuePair[1].split(",");
-                }
-                else 
-                        System.err.println("Invalid argument - expecting task-ids");
-             
-                assert(taskCommandsList != null && taskIDsList != null);
-                for (int i = 0; i < taskCommandsList.length; i++) 
-                        tasksList.add(new Task(jobID, Integer.parseInt(taskIDsList[i]), taskCommandsList[i]));
+                for (int i = 0; i < taskQuantity; i++) 
+                        tasksList.add(new Task(taskDuration));
                 
                 //StatsLog.writeToLog("Accepted job #" + AtomicCounter.increment() + " - number of tasks: " + tasksList.size());
         }

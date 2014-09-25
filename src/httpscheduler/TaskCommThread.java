@@ -47,10 +47,10 @@ public class TaskCommThread extends Thread {
 //        SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
 //        StatsLog.writeToLog(ft.format(dNow) + " Thread #" + Thread.currentThread().getId() + " started");
         try {
-            task.setResult(HttpComm.sendTask(workerURL, String.valueOf(task.getJobID()), String.valueOf(task.getTaskID()), task.getCommand()));
+            HttpComm.sendTask(workerURL, String.valueOf(task.getDuration()));
             Date dNow = new Date( );
             SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
-            StatsLog.writeToLog(ft.format(dNow) + " Thread #" + Thread.currentThread().getId() + " Sending job #" + task.getJobID() + " task #" + task.getTaskID() + " to worker: " + workerURL);
+            //StatsLog.writeToLog(ft.format(dNow) + " Thread #" + Thread.currentThread().getId() + " Sending job #" + task.getJobID() + " task #" + task.getTaskID() + " to worker: " + workerURL);
         } catch ( HttpHostConnectException | NoHttpResponseException ex) {
             WorkerManager.getWriteLock().lock();
             WorkerManager.getWorkerMap().put(workerURL, "DOWN");
