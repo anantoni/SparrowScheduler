@@ -34,21 +34,24 @@ class ConnectionHandlerThread extends Thread {
     @Override
     public void run() {
         //System.out.println("\tNew connection handler thread is running");
-        HttpContext context = new BasicHttpContext(null);
-        try {
-            while (!Thread.interrupted() && this.conn.isOpen()) {
-                this.httpservice.handleRequest(this.conn, context);
-            }
-        } catch (ConnectionClosedException ex) {
-            System.err.println("Client closed connection");
-        } catch (IOException ex) {
-            System.err.println("I/O error: " + ex.getMessage());
-        } catch (HttpException ex) {
-            System.err.println("Unrecoverable HTTP protocol violation: " + ex.getMessage());
-        } finally {
+        while (true) {
+            HttpContext context = new BasicHttpContext(null);
             try {
-                this.conn.shutdown();
-            } catch (IOException ignore) {}
+                while (!Thread.interrupted() && this.conn.isOpen()) {
+                    this.httpservice.handleRequest(this.conn, context);
+                }
+            } catch (ConnectionClosedException ex) {
+                System.err.println("Client closed connection");
+            } catch (IOException ex) {
+                System.err.println("I/O error: " + ex.getMessage());
+            } catch (HttpException ex) {
+                System.err.println("Unrecoverable HTTP protocol violation: " + ex.getMessage());
+            } 
         }
+//        finally {
+//            try {
+//                this.conn.shutdown();
+//            } catch (IOException ignore) {}
+//        }
     }
 }
