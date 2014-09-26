@@ -70,26 +70,23 @@ class GenericRequestHandler implements HttpRequestHandler  {
 
                         // Parse HTTP request
                         ArrayList <Task> tasksList = parseHttpClientRequest(entity);
-
                         Future threadMonitor = null;
-                        
                         
                         // Set scheduling policy
                         SchedulingPolicy policy = null;
                         
                         switch (mode) {
-                                case "random":
-                                        policy = new RandomSchedulingPolicy();
-                                        break;
-                                case "per-task":
-                                        policy = new PerTaskSamplingSchedulingPolicy();
-                                        break;
-                                case "batch":
-                                        policy = new BatchSamplingSchedulingPolicy();
-                                        break;
-                                
-                                default:
-                                        throw new IllegalArgumentException("Invalid mode: " + mode);
+                            case "random":
+                                    policy = new RandomSchedulingPolicy();
+                                    break;
+                            case "per-task":
+                                    policy = new PerTaskSamplingSchedulingPolicy();
+                                    break;
+                            case "batch":
+                                    policy = new BatchSamplingSchedulingPolicy();
+                                    break;
+                            default:
+                                    throw new IllegalArgumentException("Invalid mode: " + mode);
                         }
                         
                         // Different handling for Batch Processing
@@ -98,8 +95,8 @@ class GenericRequestHandler implements HttpRequestHandler  {
                         }
                         
                         // Create communication thread
-                        SendTaskThread[] threads = new SendTaskThread[tasksList.size()];
-                        System.out.println("number of send task threads: " + threads.length);
+                        //SendTaskThread[] threads = new SendTaskThread[tasksList.size()];
+                        //System.out.println("number of send task threads: " + threads.length);
                         int i = 0;
                         for (Task taskToProcess : tasksList) {
                             String workerURL = policy.selectWorker();
@@ -132,34 +129,34 @@ class GenericRequestHandler implements HttpRequestHandler  {
         }
         String[] requestArguments = result.split("&");
         
-        if (requestArguments.length != 3 ) {
+        if (requestArguments.length != 2) {
                 System.err.println("Invalid HTTP request: " + result);
                 return null; 
         }
-        else if (requestArguments.length == 3) {
-                int taskDuration = -1;
-                int taskQuantity = -1;
-                
-                String[] keyValuePair = requestArguments[0].split("=");
-                if ( keyValuePair[0].equals("task-duration") ) {
-                    assert keyValuePair[1].matches("[0-9]+");
-                    taskDuration = Integer.parseInt(keyValuePair[1]);
-                }
-                else 
-                        System.err.println("Invalid argument - task duration");
-            
-                keyValuePair = requestArguments[1].split("=");
-                if ( keyValuePair[0].equals("task-quantity") ) {
-                    assert keyValuePair[1].matches("[0-9]+");
-                    taskQuantity = Integer.parseInt(keyValuePair[1]);
-                }
-                else 
-                        System.err.println("Invalid argument - task quantity");
-            
-                for (int i = 0; i < taskQuantity; i++) 
-                        tasksList.add(new Task(taskDuration));
-                
-                //StatsLog.writeToLog("Accepted job #" + AtomicCounter.increment() + " - number of tasks: " + tasksList.size());
+        else if (requestArguments.length == 2) {
+            int taskDuration = -1;
+            int taskQuantity = -1;
+
+            String[] keyValuePair = requestArguments[0].split("=");
+            if ( keyValuePair[0].equals("task-duration") ) {
+                assert keyValuePair[1].matches("[0-9]+");
+                taskDuration = Integer.parseInt(keyValuePair[1]);
+            }
+            else 
+                    System.err.println("Invalid argument - task duration");
+
+            keyValuePair = requestArguments[1].split("=");
+            if ( keyValuePair[0].equals("task-quantity") ) {
+                assert keyValuePair[1].matches("[0-9]+");
+                taskQuantity = Integer.parseInt(keyValuePair[1]);
+            }
+            else 
+                System.err.println("Invalid argument - task quantity");
+
+            for (int i = 0; i < taskQuantity; i++) 
+                tasksList.add(new Task(taskDuration));
+
+            //StatsLog.writeToLog("Accepted job #" + AtomicCounter.increment() + " - number of tasks: " + tasksList.size());
         }
         return tasksList;
     }
