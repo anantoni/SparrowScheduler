@@ -26,20 +26,20 @@ import utils.StatsLog;
 public class TaskCommThread extends Thread {
 
     private final Task task;
-    private final String workerURL;
+    private final SchedulingPolicy policy;
     //private final SchedulingPolicy policy, backupPolicy;
 
     TaskCommThread(Task task, SchedulingPolicy policy) {
         super();
         this.task = task;
-        workerURL = policy.selectWorker();
-        //this.policy = policy;
+        this.policy = policy;
         //this.backupPolicy = new PerTaskSamplingSchedulingPolicy();
     }
     
     
     @Override
     public void run() {
+        String workerURL = policy.selectWorker();
         //boolean workerDown = false;
         //String workerURL = policy.selectWorker();
         //System.out.println(workerURL);
