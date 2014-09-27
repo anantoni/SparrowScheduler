@@ -9,9 +9,7 @@ package httpscheduler;
 import utils.Task;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
@@ -31,7 +29,6 @@ import policies.BatchSamplingSchedulingPolicy;
 import policies.PerTaskSamplingSchedulingPolicy;
 import policies.RandomSchedulingPolicy;
 import policies.SchedulingPolicy;
-import utils.StatsLog;
 
 /**
  *
@@ -145,8 +142,6 @@ class GenericRequestHandler implements HttpRequestHandler  {
 
             for (int i = 0; i < taskQuantity; i++) 
                 tasksList.add(new Task(taskDuration));
-
-            //StatsLog.writeToLog("Accepted job #" + AtomicCounter.increment() + " - number of tasks: " + tasksList.size());
         }
         return tasksList;
     }

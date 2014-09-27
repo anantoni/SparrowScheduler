@@ -43,9 +43,7 @@ public class RandomSchedulingPolicy implements SchedulingPolicy {
                         List<String> keys  = new ArrayList<>(workerMap.keySet());
                         workerURL = keys.get(random.nextInt(keys.size()));      
                 } while (workerMap.get(workerURL).equals("DOWN"));
-                WorkerManager.getReadLock().unlock();
-                //System.out.println( "Random scheduling policy: " + workerURL);
-                
+                WorkerManager.getReadLock().unlock();                
                 return workerURL;
         }
 
