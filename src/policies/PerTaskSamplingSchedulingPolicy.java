@@ -58,25 +58,27 @@ public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
         
         WorkerManager.getReadLock().unlock();
         
-        String result = "";
+        int result = -1;
         try {
-            result = HttpComm.probe(workerURL);
+            result = Integer.parseInt(HttpComm.probe(workerURL));
             //System.out.println("Worker " + workerURL + ": " + result);
         } catch (Exception ex) {
             Logger.getLogger(PerTaskSamplingSchedulingPolicy.class.getName()).log(Level.SEVERE, null, ex);
         }
+        if (result == 0)
+            return workerURL;
         
-        String result1 = "";
+        int result1 = -1;
         try {
-            result1 = HttpComm.probe(workerURL1);
+            result1 = Integer.parseInt(HttpComm.probe(workerURL1));
             //System.out.println("Worker " + workerURL1 + ": " + result1);
         } catch (Exception ex) {
             Logger.getLogger(PerTaskSamplingSchedulingPolicy.class.getName()).log(Level.SEVERE, null, ex);
         }
-        assert result.matches("[0-9]+");
-        assert result1.matches("[0-9]+");
+        if (result1 == 0)
+            return workerURL1;
         
-        return Integer.parseInt(result) > Integer.parseInt(result1) ? workerURL1 : workerURL;
+        return result > result1 ? workerURL1 : workerURL;
         
     }   
 

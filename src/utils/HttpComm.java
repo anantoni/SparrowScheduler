@@ -14,11 +14,13 @@ import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
         
@@ -28,19 +30,18 @@ import org.apache.http.util.EntityUtils;
  */
 public class HttpComm {
     static String hostname = "127.0.0.1";
-    static Integer port = new Integer(51000);
-    //static final CloseableHttpClient httpclient;
-//    static {
-//        // Create an HttpClient with the ThreadSafeClientConnManager.
-//        // This connection manager must be used if more than one thread will
-//        // be using the HttpClient.
-//        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-//        cm.setMaxTotal(100);
-//        httpclient = HttpClients.custom().setConnectionManager(cm).build();
-//    }
-//    
+    static Integer port = 51000;
+    static final CloseableHttpClient httpClient;
+    static {
+        // Create an HttpClient with the ThreadSafeClientConnManager.
+        // This connection manager must be used if more than one thread will
+        // be using the HttpClient.
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        httpClient = HttpClients.custom().setConnectionManager(cm).build();
+    }
+    
 //    public static HttpClient getHttpClient() {
-//        return httpclient;
+//        return httpClient;
 //    }
     
     public static String probe( String workerURL ) throws Exception { 
@@ -80,20 +81,20 @@ public class HttpComm {
         // TODO: handle worker response for task completion
         Map<String, String> postArguments = new LinkedHashMap();
         postArguments.put( "task-duration", taskDuration );
-        String s = schedulerPost( workerURL, postArguments );
+        String s = schedulerPost(workerURL, postArguments);
         return s;
     }
     
     public static String heartbeat( String workerURL ) throws Exception {
         Map<String, String> postArguments = new LinkedHashMap();
         postArguments.put( "heartbeat", "yes");
-        String s = schedulerPost( workerURL, postArguments );
+        String s = schedulerPost(workerURL, postArguments);
         return s;
     }
     
     public static String schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
-        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpPost httpPost = new HttpPost( workerURL );
+        //try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+            HttpPost httpPost = new HttpPost(workerURL);
             httpPost.setProtocolVersion(HttpVersion.HTTP_1_1);
             List <NameValuePair> nvps = new ArrayList <>();
             for (String key :postArguments.keySet())
@@ -101,13 +102,16 @@ public class HttpComm {
 
             httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 
-            try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
-                    //System.out.println(response2.getStatusLine());
-                    HttpEntity entity2 = response2.getEntity();
-                    String s = EntityUtils.toString(entity2);
-                    EntityUtils.consume(entity2);
-                    return s;
+            try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+                //System.out.println(response2.getStatusLine());
+                HttpEntity entity = response.getEntity();
+                String s = EntityUtils.toString(entity);
+                EntityUtils.consume(entity);
+                return s;
+            }
+            finally {
+                httpPost.releaseConnection();
             }
         }
-    }
+    //}
 }

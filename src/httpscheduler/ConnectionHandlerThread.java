@@ -33,8 +33,9 @@ class ConnectionHandlerThread extends Thread {
 
     @Override
     public void run() {
-        //System.out.println("\tNew connection handler thread is running");
+        System.out.println("\tNew connection handler thread is running");
         while (true) {
+            
             HttpContext context = new BasicHttpContext(null);
             try {
                 while (!Thread.interrupted() && this.conn.isOpen()) {
@@ -46,12 +47,11 @@ class ConnectionHandlerThread extends Thread {
                 System.err.println("I/O error: " + ex.getMessage());
             } catch (HttpException ex) {
                 System.err.println("Unrecoverable HTTP protocol violation: " + ex.getMessage());
-            } 
+            } finally {
+                try {
+                    this.conn.shutdown();
+                } catch (IOException ignore) {}
+            }
         }
-//        finally {
-//            try {
-//                this.conn.shutdown();
-//            } catch (IOException ignore) {}
-//        }
     }
 }

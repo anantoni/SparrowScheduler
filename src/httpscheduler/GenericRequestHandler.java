@@ -53,67 +53,59 @@ class GenericRequestHandler implements HttpRequestHandler  {
             final HttpRequest request,
             final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {
-                         while (true) {
-
-            String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
-            if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
-                throw new MethodNotSupportedException(method + " method not supported");
-            }
-
-            StringEntity stringEntity;
-            if (request instanceof HttpEntityEnclosingRequest) {
-                HttpEntity httpEntity = ((HttpEntityEnclosingRequest) request).getEntity();
-                String entity = EntityUtils.toString(httpEntity);
-                //System.out.println("Incoming entity content (string): " + entity);
-
-                // Parse HTTP request
-                ArrayList <Task> tasksList = parseHttpClientRequest(entity);
-
-                // Set scheduling policy
-                SchedulingPolicy policy = null;
-
-                switch (mode) {
-                    case "random":
-                            policy = new RandomSchedulingPolicy();
-                            break;
-                    case "per-task":
-                            policy = new PerTaskSamplingSchedulingPolicy();
-                            break;
-                    case "batch":
-                            policy = new BatchSamplingSchedulingPolicy();
-                            break;
-                    default:
-                            throw new IllegalArgumentException("Invalid mode: " + mode);
+                             
+                String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
+                if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
+                    throw new MethodNotSupportedException(method + " method not supported");
                 }
 
-                // Different handling for Batch Processing
-                if (policy instanceof BatchSamplingSchedulingPolicy) {
-                    policy.selectBatchWorker(tasksList.size());
+                StringEntity stringEntity;
+                if (request instanceof HttpEntityEnclosingRequest) {
+                    HttpEntity httpEntity = ((HttpEntityEnclosingRequest) request).getEntity();
+                    String entity = EntityUtils.toString(httpEntity);
+                    //System.out.println("Incoming entity content (string): " + entity);
+
+                    // Parse HTTP request
+                    ArrayList <Task> tasksList = parseHttpClientRequest(entity);
+
+                    // Set scheduling policy
+                    SchedulingPolicy policy = null;
+
+                    switch (mode) {
+                        case "random":
+                                policy = new RandomSchedulingPolicy();
+                                break;
+                        case "per-task":
+                                policy = new PerTaskSamplingSchedulingPolicy();
+                                break;
+                        case "batch":
+                                policy = new BatchSamplingSchedulingPolicy();
+                                break;
+                        default:
+                                throw new IllegalArgumentException("Invalid mode: " + mode);
+                    }
+
+                    // Different handling for Batch Processing
+                    if (policy instanceof BatchSamplingSchedulingPolicy) {
+                        policy.selectBatchWorker(tasksList.size());
+                    }
+
+                    // Create communication thread
+                    //SendTaskThread[] threads = new SendTaskThread[tasksList.size()];
+                    //System.out.println("number of send task threads: " + threads.length);
+                    for (Task taskToProcess : tasksList) {
+                        Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, policy);
+                        taskCommExecutor.execute(taskCommExecutorThread);
+                    }
+                    response.setStatusCode(HttpStatus.SC_OK);
+                    stringEntity = new StringEntity("result:success");
+                } 
+                else{
+                    response.setStatusCode(HttpStatus.SC_OK);
+                    stringEntity = new StringEntity("result:fail");
                 }
 
-                // Create communication thread
-                //SendTaskThread[] threads = new SendTaskThread[tasksList.size()];
-                //System.out.println("number of send task threads: " + threads.length);
-                int i = 0;
-                for (Task taskToProcess : tasksList) {
-                    String workerURL = policy.selectWorker();
-                    Date dNow = new Date( );
-                    SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
-                    StatsLog.writeToLog( ft.format(dNow) + "Task scheduled");
-                    Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, workerURL);
-                    taskCommExecutor.execute(taskCommExecutorThread);
-                    i++;
-                }
-                response.setStatusCode(HttpStatus.SC_OK);
-                stringEntity = new StringEntity("result:success");
-            } 
-            else{
-                response.setStatusCode(HttpStatus.SC_OK);
-                stringEntity = new StringEntity("result:fail");
-            }
-               
-        response.setEntity(stringEntity); 
-        }
+                response.setEntity(stringEntity); 
     }
 
     ArrayList<Task> parseHttpClientRequest(String httpRequest) {

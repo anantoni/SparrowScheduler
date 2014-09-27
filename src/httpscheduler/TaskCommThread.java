@@ -29,10 +29,10 @@ public class TaskCommThread extends Thread {
     private final String workerURL;
     //private final SchedulingPolicy policy, backupPolicy;
 
-    TaskCommThread(Task task, String workerURL) {
+    TaskCommThread(Task task, SchedulingPolicy policy) {
         super();
         this.task = task;
-        this.workerURL = workerURL;
+        workerURL = policy.selectWorker();
         //this.policy = policy;
         //this.backupPolicy = new PerTaskSamplingSchedulingPolicy();
     }
