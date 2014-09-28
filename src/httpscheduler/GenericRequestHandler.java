@@ -79,28 +79,28 @@ class GenericRequestHandler implements HttpRequestHandler  {
                                 throw new IllegalArgumentException("Invalid mode: " + mode);
                     }
 
-                    ArrayList <Task> tasksList = null; 
-                    Job job = null;
-                    if (mode.equals("random") || mode.equals("per-task")) {
-                        tasksList = parseGenericHttpClientRequest(entity);
-                        for (Task taskToProcess : tasksList) {
-                            Runnable taskSubmitThread = new TaskSubmitThread(taskToProcess, policy);
-                            commExecutor.execute(taskSubmitThread);
-                        }
-                    }
-                    else if (mode.equals("batch")) {
-                        job = parseBatchSamplingHttpClientRequest(entity);
-                        Runnable jobSubmitThread = new JobSubmitThread(job, policy);
-                        commExecutor.execute(jobSubmitThread);
+                    ArrayList <Task> tasksList; 
+                    Job job;
+                    switch (mode) {
+                        case "random":
+                        case "per-task":
+                            tasksList = parseGenericHttpClientRequest(entity);
+                            for (Task taskToProcess : tasksList) {
+                                Runnable taskSubmitThread = new TaskSubmitThread(taskToProcess, policy);
+                                commExecutor.execute(taskSubmitThread);
+                            }   break;
+                        case "batch":
+                            job = parseBatchSamplingHttpClientRequest(entity);
+                            Runnable jobSubmitThread = new JobSubmitThread(job, policy);
+                            commExecutor.execute(jobSubmitThread);
+                            break;
                     }
                     
                      response.setStatusCode(HttpStatus.SC_OK);
                     stringEntity = new StringEntity("result:success");
                     // Create communication thread
                     //SendTaskThread[] threads = new SendTaskThread[tasksList.size()];
-                    //System.out.println("number of send task threads: " + threads.length);
-                    
-                   
+                    //System.out.println("number of send task threads: " + threads.length);                   
                 } 
                 else{
                     response.setStatusCode(HttpStatus.SC_OK);

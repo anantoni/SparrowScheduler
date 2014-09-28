@@ -77,7 +77,6 @@ public class HttpComm {
     }
     
     public static String sendTask( String workerURL, String taskDuration) throws Exception {
-        // TODO: handle worker response for task completion
         Map<String, String> postArguments = new LinkedHashMap();
         postArguments.put( "task-duration", taskDuration );
         String s = schedulerPost(workerURL, postArguments);
@@ -100,25 +99,23 @@ public class HttpComm {
     }
     
     public static String schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
-        //try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpPost httpPost = new HttpPost(workerURL);
-            httpPost.setProtocolVersion(HttpVersion.HTTP_1_1);
-            List <NameValuePair> nvps = new ArrayList <>();
-            for (String key :postArguments.keySet())
-                nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
+        HttpPost httpPost = new HttpPost(workerURL);
+        httpPost.setProtocolVersion(HttpVersion.HTTP_1_1);
+        List <NameValuePair> nvps = new ArrayList <>();
+        for (String key :postArguments.keySet())
+            nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
 
-            httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+        httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 
-            try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-                //System.out.println(response2.getStatusLine());
-                HttpEntity entity = response.getEntity();
-                String s = EntityUtils.toString(entity);
-                EntityUtils.consume(entity);
-                return s;
-            }
-            finally {
-                httpPost.releaseConnection();
-            }
+        try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+            //System.out.println(response.getStatusLine());
+            HttpEntity entity = response.getEntity();
+            String s = EntityUtils.toString(entity);
+            EntityUtils.consume(entity);
+            return s;
         }
-    //}
+        finally {
+            httpPost.releaseConnection();
+        }
+    }
 }
