@@ -8,14 +8,9 @@ package httpscheduler;
 
 import utils.Task;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
@@ -31,20 +26,22 @@ import policies.BatchSamplingSchedulingPolicy;
 import policies.PerTaskSamplingSchedulingPolicy;
 import policies.RandomSchedulingPolicy;
 import policies.SchedulingPolicy;
-import utils.StatsLog;
+import static utils.HttpParser.parseBatchSamplingHttpClientRequest;
+import static utils.HttpParser.parseGenericHttpClientRequest;
+import utils.Job;
 
 /**
  *
  * @author anantoni
  */
 class GenericRequestHandler implements HttpRequestHandler  {
-        private final ThreadPoolExecutor taskCommExecutor;
+        private final ThreadPoolExecutor commExecutor;
         private final String mode;
 
         // Pass reference to the requestsQueue to the GenericRequestHandler
-        public GenericRequestHandler(ThreadPoolExecutor taskCommExecutor, String mode) {
+        public GenericRequestHandler(ThreadPoolExecutor commExecutor, String mode) {
                 super();
-                this.taskCommExecutor = taskCommExecutor;
+                this.commExecutor = commExecutor;
                 this.mode = mode;
         }
 
@@ -64,10 +61,7 @@ class GenericRequestHandler implements HttpRequestHandler  {
                     HttpEntity httpEntity = ((HttpEntityEnclosingRequest) request).getEntity();
                     String entity = EntityUtils.toString(httpEntity);
                     //System.out.println("Incoming entity content (string): " + entity);
-
-                    // Parse HTTP request
-                    ArrayList <Task> tasksList = parseHttpClientRequest(entity);
-
+                   
                     // Set scheduling policy
                     SchedulingPolicy policy = null;
 
@@ -85,20 +79,28 @@ class GenericRequestHandler implements HttpRequestHandler  {
                                 throw new IllegalArgumentException("Invalid mode: " + mode);
                     }
 
-                    // Different handling for Batch Processing
-                    if (policy instanceof BatchSamplingSchedulingPolicy) {
-                        policy.selectBatchWorker(tasksList.size());
+                    ArrayList <Task> tasksList = null; 
+                    Job job = null;
+                    if (mode.equals("random") || mode.equals("per-task")) {
+                        tasksList = parseGenericHttpClientRequest(entity);
+                        for (Task taskToProcess : tasksList) {
+                            Runnable taskSubmitThread = new TaskSubmitThread(taskToProcess, policy);
+                            commExecutor.execute(taskSubmitThread);
+                        }
                     }
-
+                    else if (mode.equals("batch")) {
+                        job = parseBatchSamplingHttpClientRequest(entity);
+                        Runnable jobSubmitThread = new JobSubmitThread(job, policy);
+                        commExecutor.execute(jobSubmitThread);
+                    }
+                    
+                     response.setStatusCode(HttpStatus.SC_OK);
+                    stringEntity = new StringEntity("result:success");
                     // Create communication thread
                     //SendTaskThread[] threads = new SendTaskThread[tasksList.size()];
                     //System.out.println("number of send task threads: " + threads.length);
-                    for (Task taskToProcess : tasksList) {
-                        Thread taskCommExecutorThread = new TaskCommThread(taskToProcess, policy);
-                        taskCommExecutor.execute(taskCommExecutorThread);
-                    }
-                    response.setStatusCode(HttpStatus.SC_OK);
-                    stringEntity = new StringEntity("result:success");
+                    
+                   
                 } 
                 else{
                     response.setStatusCode(HttpStatus.SC_OK);
@@ -106,49 +108,6 @@ class GenericRequestHandler implements HttpRequestHandler  {
                 }
 
                 response.setEntity(stringEntity); 
-    }
-
-    ArrayList<Task> parseHttpClientRequest(String httpRequest) {
-        ArrayList<Task> tasksList = new ArrayList<>();
-        
-        String result = "";
-        try {
-                result = java.net.URLDecoder.decode(httpRequest, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-                Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        String[] requestArguments = result.split("&");
-        
-        if (requestArguments.length != 2) {
-                System.err.println("Invalid HTTP request: " + result);
-                return null; 
-        }
-        else if (requestArguments.length == 2) {
-            int taskDuration = -1;
-            int taskQuantity = -1;
-
-            String[] keyValuePair = requestArguments[0].split("=");
-            if ( keyValuePair[0].equals("task-duration") ) {
-                assert keyValuePair[1].matches("[0-9]+");
-                taskDuration = Integer.parseInt(keyValuePair[1]);
-            }
-            else 
-                    System.err.println("Invalid argument - task duration");
-
-            keyValuePair = requestArguments[1].split("=");
-            if ( keyValuePair[0].equals("task-quantity") ) {
-                assert keyValuePair[1].matches("[0-9]+");
-                taskQuantity = Integer.parseInt(keyValuePair[1]);
-            }
-            else 
-                System.err.println("Invalid argument - task quantity");
-
-            for (int i = 0; i < taskQuantity; i++) 
-                tasksList.add(new Task(taskDuration));
-
-            //StatsLog.writeToLog("Accepted job #" + AtomicCounter.increment() + " - number of tasks: " + tasksList.size());
-        }
-        return tasksList;
     }
 }
 

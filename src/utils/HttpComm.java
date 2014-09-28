@@ -14,7 +14,6 @@ import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -81,6 +80,14 @@ public class HttpComm {
         // TODO: handle worker response for task completion
         Map<String, String> postArguments = new LinkedHashMap();
         postArguments.put( "task-duration", taskDuration );
+        String s = schedulerPost(workerURL, postArguments);
+        return s;
+    }
+    
+    public static String sendJob(String workerURL, String taskDuration, String taskQuantity) throws Exception {
+        Map<String, String> postArguments = new LinkedHashMap();
+        postArguments.put("task-duration", taskDuration);
+        postArguments.put("task-quantity", taskQuantity);
         String s = schedulerPost(workerURL, postArguments);
         return s;
     }

@@ -6,7 +6,7 @@
 
 package utils;
 
-import httpscheduler.TaskCommThread;
+import httpscheduler.TaskSubmitThread;
 import java.net.SocketException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -42,14 +42,14 @@ public class WorkerManager {
             // catch http exception
             } catch ( HttpHostConnectException | NoHttpResponseException ex) {
                     WorkerManager.getWorkerMap().put(workerURL, "DOWN");
-                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             } 
             // catch general socket exception
             catch ( SocketException ex) {
                     WorkerManager.getWorkerMap().put(workerURL, "DOWN");
-                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Exception ex) {
-                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         write.unlock();
@@ -68,13 +68,13 @@ public class WorkerManager {
             // catch http exception
             } catch ( HttpHostConnectException | NoHttpResponseException ex) {
                     WorkerManager.getWorkerMap().put(workerURL, "DOWN");
-                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             // catch general socket exception
             } catch ( SocketException ex) {
                     WorkerManager.getWorkerMap().put(workerURL, "DOWN");
-                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Exception ex) {
-                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         write.unlock();
@@ -108,14 +108,14 @@ public class WorkerManager {
             // catch http exception
             } catch ( HttpHostConnectException | NoHttpResponseException ex) {
                     WorkerManager.getWorkerMap().put(workerURL, "DOWN");
-                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             }
             // catch general socket exception
             catch ( SocketException ex) {
                     WorkerManager.getWorkerMap().put(workerURL, "DOWN");
-                    Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Exception ex) {
-                Logger.getLogger(TaskCommThread.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         write.unlock();
