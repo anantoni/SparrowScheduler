@@ -10,14 +10,11 @@ import utils.WorkerManager;
 import utils.Task;
 import utils.HttpComm;
 import java.net.SocketException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.HttpHostConnectException;
 import policies.*;
-import utils.StatsLog;
 
 /**
  *
@@ -27,36 +24,26 @@ public class TaskSubmitThread implements Runnable{
 
     private final Task task;
     private final SchedulingPolicy policy;
-    //private final SchedulingPolicy policy, backupPolicy;
 
     TaskSubmitThread(Task task, SchedulingPolicy policy) {
         super();
         this.task = task;
         this.policy = policy;
-        //this.backupPolicy = new PerTaskSamplingSchedulingPolicy();
     }
-    
     
     @Override
     public void run() {
         String workerURL = policy.selectWorker();
-        //boolean workerDown = false;
-        //String workerURL = policy.selectWorker();
-        //System.out.println(workerURL);
-//        Date dNow = new Date( );
-//        SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
-//        StatsLog.writeToLog(ft.format(dNow) + " Thread #" + Thread.currentThread().getId() + " started");
+        
         try {
             HttpComm.sendTask(workerURL, String.valueOf(task.getDuration()));
-            Date dNow = new Date( );
-            SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
-            //StatsLog.writeToLog(ft.format(dNow) + " Thread #" + Thread.currentThread().getId() + " Sending job #" + task.getJobID() + " task #" + task.getTaskID() + " to worker: " + workerURL);
         } catch ( HttpHostConnectException | NoHttpResponseException ex) {
             WorkerManager.getWriteLock().lock();
             WorkerManager.getWorkerMap().put(workerURL, "DOWN");
             WorkerManager.getWriteLock().unlock();
             Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             //workerDown = true;
+
         } 
         catch ( SocketException ex) {
             WorkerManager.getWriteLock().lock();
@@ -66,8 +53,7 @@ public class TaskSubmitThread implements Runnable{
             //workerDown = true;
         } catch (Exception ex) {
             Logger.getLogger(TaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+        }        
         // This part is executed only if the worker selected by the primary policy goes down
         // It is guaranteed that as long as worker is up the task will be completed eventually
 //        while (workerDown == true) {
