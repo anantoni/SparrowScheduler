@@ -60,8 +60,8 @@ public class BatchSamplingSchedulingPolicy implements SchedulingPolicy {
                 // Execute multiprobe
                 try {
                         results =  HttpComm.multiProbe(toBeProbed);
-                        for (String url : results.keySet())
-                                System.out.println("Worker url: " + url + " - probe result: " + results.get(url));
+//                        for (String url : results.keySet())
+//                                System.out.println("Worker url: " + url + " - probe result: " + results.get(url));
                 } 
                 catch (Exception ex) {
                         Logger.getLogger(BatchSamplingSchedulingPolicy.class.getName()).log(Level.SEVERE, null, ex);
@@ -75,7 +75,7 @@ public class BatchSamplingSchedulingPolicy implements SchedulingPolicy {
                         }
                 }
 
-                System.out.println( "Least loaded worker: " + min.getKey());
+//                System.out.println( "Least loaded worker: " + min.getKey());
                 WorkerManager.getReadLock().unlock();
                 return min.getKey();
         }
