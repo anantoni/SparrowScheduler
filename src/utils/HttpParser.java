@@ -97,4 +97,56 @@ public class HttpParser {
         }
         return job;
     }
+     
+     // Parse Late Binding request, either from client or worker
+     public static String parseLateBindingRequest(String httpRequest, JobMap jobMap) {        
+        String result = "";
+        try {
+                result = java.net.URLDecoder.decode(httpRequest, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(HttpParser.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        String[] requestArguments = result.split("&");
+        
+        // If probe-response from available worker
+        if (requestArguments.length == 1) {
+                int jobID;
+                
+                String[] keyValuePair = requestArguments[0].split("=");
+                assert keyValuePair[0].equals("job-id");
+                assert keyValuePair[1].matches("[0-9]+");
+                jobID = Integer.parseInt(keyValuePair[1]);
+                
+                return "probe-response:" + jobID;
+        }
+        // else if new job
+        else if (requestArguments.length == 2) {
+            int taskDuration = -1;
+            int taskQuantity = -1;
+
+            String[] keyValuePair = requestArguments[0].split("=");
+            if ( keyValuePair[0].equals("task-duration") ) {
+                assert keyValuePair[1].matches("[0-9]+");
+                taskDuration = Integer.parseInt(keyValuePair[1]);
+            }
+            else 
+                    System.err.println("Invalid argument - task duration");
+
+            keyValuePair = requestArguments[1].split("=");
+            if ( keyValuePair[0].equals("task-quantity") ) {
+                assert keyValuePair[1].matches("[0-9]+");
+                taskQuantity = Integer.parseInt(keyValuePair[1]);
+            }
+            else 
+                System.err.println("Invalid argument - task quantity");
+
+            int sJobID = jobMap.putJob(taskQuantity, taskDuration);
+            StatsLog.writeToLog("Accepted job #" + sJobID + " - number of tasks: " + taskQuantity + " - task duration: " + taskDuration);
+            return "new-job:"+ Integer.toString(sJobID) + ":" + taskQuantity;
+        }
+        else {
+                System.err.println("Invalid HTTP request: " + result);
+                return "Invalid"; 
+        }
+    }
 }

@@ -8,12 +8,7 @@ package httpscheduler;
 import utils.Task;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,168 +23,82 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
-import utils.HttpComm;
 import utils.JobMap;
+import static utils.HttpParser.parseLateBindingRequest;
 import utils.StatsLog;
-import utils.WorkerManager;
 
 /**
  *
  * @author anantoni
  */
 public class LateBindingRequestHandler implements HttpRequestHandler {
-        private final ThreadPoolExecutor taskCommExecutor;         
-        private final JobMap jobMap;
+    private final ThreadPoolExecutor taskCommExecutor;         
+    private final JobMap jobMap;
 
-        // Pass reference to the requestsQueue to the GenericRequestHandler
-        public LateBindingRequestHandler(ThreadPoolExecutor taskCommExecutor, JobMap jobMap) {
-                super();
-                this.taskCommExecutor = taskCommExecutor;
-                this.jobMap = jobMap;
+    // Pass reference to the requestsQueue to the GenericRequestHandler
+    public LateBindingRequestHandler(ThreadPoolExecutor taskCommExecutor, JobMap jobMap) {
+            super();
+            this.taskCommExecutor = taskCommExecutor;
+            this.jobMap = jobMap;
+    }
+
+    @Override
+    public void handle(
+        final HttpRequest request,
+        final HttpResponse response,
+        final HttpContext context) throws HttpException, IOException {
+
+        String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
+        if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
+                throw new MethodNotSupportedException(method + " method not supported");
         }
 
-        @Override
-        public void handle(
-            final HttpRequest request,
-            final HttpResponse response,
-            final HttpContext context) throws HttpException, IOException {
+        if (request instanceof HttpEntityEnclosingRequest) {
+            HttpEntity httpEntity = ((HttpEntityEnclosingRequest) request).getEntity();
+            String entity = EntityUtils.toString(httpEntity);
+            //System.out.println("Incoming entity content (string): " + entity);
 
-            String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
-            if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
-                    throw new MethodNotSupportedException(method + " method not supported");
+            // Parse HTTP request
+            String parseResult = parseLateBindingRequest(entity, jobMap);
+
+            StringEntity stringEntity = new StringEntity("");
+            // if new job received from a client, start executing late binding policy
+            if (parseResult.contains("new-job")) {
+                response.setStatusCode(HttpStatus.SC_OK);
+                String pieces[] = parseResult.split(":");
+                taskCommExecutor.execute(new LateBindingProbeThread(Integer.parseInt(pieces[1]), 
+                                                                                                                        Integer.parseInt(pieces[2])));
+                response.setEntity(new StringEntity("result:success"));
             }
-
-            StringEntity stringEntity;
-            if (request instanceof HttpEntityEnclosingRequest) {
-                HttpEntity httpEntity = ((HttpEntityEnclosingRequest) request).getEntity();
-                String entity = EntityUtils.toString(httpEntity);
-                System.out.println("Incoming entity content (string): " + entity);
-
-                // Parse HTTP request
-                String parseResult = parseHttpClientRequest(entity);
-
-                // if new job received from a client, start executing late binding policy
-                if (parseResult.contains("new-job")) {
-                    WorkerManager.getReadLock().lock();
-                    List<String> results;
-                    List workerURLs = new LinkedList<>();
-                    List toBeProbed = new LinkedList<>();
-                    workerURLs.addAll(WorkerManager.getWorkerMap().keySet());
-                    WorkerManager.getReadLock().unlock();
-
-                    String[] pieces = parseResult.split(":");
-                    //multiprobe d * #tasks where d = 2;
-                    int numberOfProbes = 2 * Integer.parseInt(pieces[2]);
-                    for (int i=0; i<numberOfProbes; i++) {
-                        Collections.shuffle(workerURLs);
-                        toBeProbed.add(workerURLs.get(0));
-                    }
-
-                    // Execute late binding multiprobe - we expect instant OK responses
+            // else if probe response from worker, handle it accordingly
+            else if (parseResult.contains("probe-response")) {
+                StatsLog.writeToLog("received probe-response");
+                response.setStatusCode(HttpStatus.SC_OK);
+                String[] pieces = parseResult.split(":");
+                int jobID = Integer.parseInt(pieces[1]);
+              
+                Task task = jobMap.getTask(jobID);
+                // send NOOP if task queue empty for specified job
+                if (task == null) {
+                    response.setStatusCode(HttpStatus.SC_OK);
                     try {
-                        System.out.println("Needed probes: " + numberOfProbes);
-                        System.out.println("Sending :" + toBeProbed.size() + " probes");
-                        System.out.println("Job id: " + pieces[1]);
-                        results =  HttpComm.lateBindingMultiProbe(toBeProbed, Integer.parseInt(pieces[1]));
-                        for (String result : results)
-                                System.out.println("Late binding probe result: " + result);
-                    } 
-                    catch (Exception ex) {
-                        Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-                // else if probe response from worker, handle it accordingly
-                else if (parseResult.contains("probe-response")) {
-                    System.out.println("Received probe response.");
-                    String[] pieces = parseResult.split(":");
-                    int jobID = Integer.parseInt(pieces[1]);
-                    BlockingQueue<Task> taskQueue = jobMap.getTaskQueue(jobID);
-
-                    // send NOOP if task queue empty for specified job
-                    if (taskQueue.isEmpty()) {
-                        response.setStatusCode(HttpStatus.SC_OK);
                         stringEntity = new StringEntity("NOOP");
-                        System.out.println("Responding with NOOP");
+                    } catch (UnsupportedEncodingException ex) {
+                        Logger.getLogger(LateBindingTaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    // else send job id, task id and task commmand to worker
-                    else {
-                        Task task = taskQueue.remove();
-////                        stringEntity = new StringEntity(String.valueOf(jobID) 
-////                                                                                                + "&" + task.getTaskID() 
-////                                                                                                + "&" +  task.getCommand());
-                        System.out.println("Responding with task");
-                    }
-//                    response.setEntity(stringEntity); 
+                    System.out.println("Responding with NOOP");
                 }
+                // else send job id, task id and task commmand to worker
+                else {
+                    try {
+                        stringEntity = new StringEntity(String.valueOf(task.getDuration())) ;
+                    } catch (UnsupportedEncodingException ex) {
+                        Logger.getLogger(LateBindingTaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                     System.out.println("Responding with task duration: " + task.getDuration());
+                }
+                 response.setEntity(stringEntity);    
             }
-        }
-
-String parseHttpClientRequest(String httpRequest) {
-        ArrayList<Task> tasksList = new ArrayList<>();
-        String[] taskCommandsList = null;
-        String[] taskIDsList = null;
-        
-        String result = "";
-        try {
-                result = java.net.URLDecoder.decode(httpRequest, "UTF-8");
-                System.out.println("Decoded request: " + result);
-        } catch (UnsupportedEncodingException ex) {
-                Logger.getLogger(GenericRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        String[] requestArguments = result.split("&");
-        
-        // If probe-response from available worker
-        if (requestArguments.length == 2) {
-                int jobID = 0;
-                String[] keyValuePair = requestArguments[0].split("=");
-                
-                assert keyValuePair[0].equals("probe-response");
-                keyValuePair = requestArguments[1].split("=");
-                assert keyValuePair[0].equals("job-id");
-                assert keyValuePair[1].matches("[0-9]+");
-                jobID = Integer.parseInt(keyValuePair[1]);
-                
-                return "probe-response:" + jobID;
-        }
-        // else if new job
-        else if (requestArguments.length == 3) {
-                int jobID = 0;
-                String[] keyValuePair = requestArguments[0].split("=");
-                
-                if ( keyValuePair[0].equals("job-id") ) {
-                        assert keyValuePair[1].matches("[0-9]+");
-                        jobID = Integer.parseInt(keyValuePair[1]);
-                }
-                else {
-                        System.err.println("Invalid argument - expecting job-id");
-                }
-            
-                keyValuePair = requestArguments[1].split("=");
-                if ( keyValuePair[0].equals("task-commands") ) {
-                        taskCommandsList = keyValuePair[1].split(",");
-                }
-                else {
-                        System.err.println("Invalid argument - expecting task commands");
-                }
-            
-                keyValuePair = requestArguments[2].split("=");
-                if ( keyValuePair[0].equals("task-ids") ) {
-                        taskIDsList = keyValuePair[1].split(",");
-                }
-                else {
-                        System.err.println("Invalid argument - expecting task-ids");
-                }
-                assert(taskCommandsList != null && taskIDsList != null);
-                for (int i = 0; i < taskCommandsList.length; i++) {
-                        //tasksList.add(new Task(jobID, Integer.parseInt(taskIDsList[i]), taskCommandsList[i]));
-                }
-                int sJobID = jobMap.putJob(tasksList);
-                StatsLog.writeToLog("Accepted job #" + sJobID + " - number of tasks: " + tasksList.size());
-                return "new-job:"+ Integer.toString(sJobID) + ":" + tasksList.size();
-        }
-        else {
-                System.err.println("Invalid HTTP request: " + result);
-                return "Invalid"; 
         }
     }
 }

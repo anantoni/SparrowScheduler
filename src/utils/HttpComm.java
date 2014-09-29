@@ -6,21 +6,26 @@
 
 package utils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
         
 /**
@@ -38,10 +43,6 @@ public class HttpComm {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         httpClient = HttpClients.custom().setConnectionManager(cm).build();
     }
-    
-//    public static HttpClient getHttpClient() {
-//        return httpClient;
-//    }
     
     public static String probe( String workerURL ) throws Exception { 
         // TODO: handle probe result
@@ -106,16 +107,22 @@ public class HttpComm {
             nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
 
         httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-
-        try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-            //System.out.println(response.getStatusLine());
+        String s = "";
+        
+        HttpContext context = HttpClientContext.create();
+        CloseableHttpResponse response = httpClient.execute(httpPost, context);
+        try {
             HttpEntity entity = response.getEntity();
-            String s = EntityUtils.toString(entity);
+            s = EntityUtils.toString(entity);
             EntityUtils.consume(entity);
-            return s;
-        }
+        }   
+        catch (IOException ex) {
+            Logger.getLogger(HttpComm.class.getName()).log(Level.SEVERE, null, ex);
+        } 
         finally {
+            response.close();
             httpPost.releaseConnection();
         }
+        return s;
     }
 }

@@ -10,6 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -22,10 +24,16 @@ public class JobMap {
         jobMap = new LinkedHashMap<>();
     }
     
-    public synchronized int putJob(ArrayList<Task> tasksList) {
+    public synchronized int putJob(int taskQuantity, int taskDuration) {
         int jobID = AtomicCounter.increment();
         BlockingQueue tasksQueue = new LinkedBlockingQueue<>();
-        tasksQueue.addAll(tasksList);
+        for (int i =0; i<taskQuantity; i++) {
+            try {
+                tasksQueue.put(new Task(taskDuration));
+            } catch (InterruptedException ex) {
+                Logger.getLogger(JobMap.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         jobMap.put(jobID, tasksQueue);
         
         return jobID;
@@ -40,8 +48,10 @@ public class JobMap {
         jobMap.remove(jobID);
     }
 
-    public synchronized BlockingQueue<Task> getTaskQueue(int jobID) {
-        return jobMap.get(jobID);
+    public synchronized Task getTask(int jobID) {
+        if (jobMap.get(jobID).isEmpty())
+            return null;
+        return jobMap.get(jobID).remove();
     }
     
 }

@@ -96,7 +96,7 @@ class GenericRequestHandler implements HttpRequestHandler  {
                             break;
                     }
                     
-                     response.setStatusCode(HttpStatus.SC_OK);
+                    response.setStatusCode(HttpStatus.SC_OK);
                     stringEntity = new StringEntity("result:success");
                     // Create communication thread
                     //SendTaskThread[] threads = new SendTaskThread[tasksList.size()];
