@@ -107,7 +107,7 @@ public class HttpParser {
                 Logger.getLogger(HttpParser.class.getName()).log(Level.SEVERE, null, ex);
         }
         String[] requestArguments = result.split("&");
-        
+    
         // If probe-response from available worker
         if (requestArguments.length == 1) {
                 int jobID;

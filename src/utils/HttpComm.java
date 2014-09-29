@@ -33,7 +33,7 @@ import org.apache.http.util.EntityUtils;
  * @author anantoni
  */
 public class HttpComm {
-    static String hostname = "127.0.0.1";
+    static String hostname = "linux27.di.uoa.gr";
     static Integer port = 51000;
     static final CloseableHttpClient httpClient;
     static {
@@ -99,7 +99,7 @@ public class HttpComm {
         return s;
     }
     
-    public static String schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
+     public static String schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
         HttpPost httpPost = new HttpPost(workerURL);
         httpPost.setProtocolVersion(HttpVersion.HTTP_1_1);
         List <NameValuePair> nvps = new ArrayList <>();
@@ -107,22 +107,42 @@ public class HttpComm {
             nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
 
         httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-        String s = "";
-        
-        HttpContext context = HttpClientContext.create();
-        CloseableHttpResponse response = httpClient.execute(httpPost, context);
-        try {
+
+        try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+            //System.out.println(response.getStatusLine());
             HttpEntity entity = response.getEntity();
-            s = EntityUtils.toString(entity);
+            String s = EntityUtils.toString(entity);
             EntityUtils.consume(entity);
-        }   
-        catch (IOException ex) {
-            Logger.getLogger(HttpComm.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+            return s;
+        }
         finally {
-            response.close();
             httpPost.releaseConnection();
         }
-        return s;
     }
+    
+//    public static String schedulerPost( String workerURL, Map<String, String> postArguments) throws Exception {
+//        HttpPost httpPost = new HttpPost(workerURL);
+//        httpPost.setProtocolVersion(HttpVersion.HTTP_1_1);
+//        List <NameValuePair> nvps = new ArrayList <>();
+//        for (String key :postArguments.keySet())
+//            nvps.add( new BasicNameValuePair( key, postArguments.get(key) ) );
+//
+//        httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+//        String s = "";
+//        
+//        HttpContext context = HttpClientContext.create();
+//        try (CloseableHttpResponse response = httpClient.execute(httpPost, context)) {
+//            HttpEntity entity = response.getEntity();
+//            s = EntityUtils.toString(entity);
+//            EntityUtils.consume(entity);
+//            response.close();
+//        }   
+//        catch (IOException ex) {
+//            Logger.getLogger(HttpComm.class.getName()).log(Level.SEVERE, null, ex);
+//        } 
+//        finally {
+//            httpPost.releaseConnection();
+//        }
+//        return s;
+//    }
 }

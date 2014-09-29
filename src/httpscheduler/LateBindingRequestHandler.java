@@ -47,7 +47,8 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
         final HttpRequest request,
         final HttpResponse response,
         final HttpContext context) throws HttpException, IOException {
-
+        
+        //System.out.println("request received");
         String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
         if (!method.equals("GET") && !method.equals("HEAD") && !method.equals("POST")) {
                 throw new MethodNotSupportedException(method + " method not supported");
@@ -56,18 +57,16 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
         if (request instanceof HttpEntityEnclosingRequest) {
             HttpEntity httpEntity = ((HttpEntityEnclosingRequest) request).getEntity();
             String entity = EntityUtils.toString(httpEntity);
-            //System.out.println("Incoming entity content (string): " + entity);
 
             // Parse HTTP request
             String parseResult = parseLateBindingRequest(entity, jobMap);
-
             StringEntity stringEntity = new StringEntity("");
             // if new job received from a client, start executing late binding policy
             if (parseResult.contains("new-job")) {
                 response.setStatusCode(HttpStatus.SC_OK);
                 String pieces[] = parseResult.split(":");
                 taskCommExecutor.execute(new LateBindingProbeThread(Integer.parseInt(pieces[1]), 
-                                                                                                                        Integer.parseInt(pieces[2])));
+                                                                                                             Integer.parseInt(pieces[2])));
                 response.setEntity(new StringEntity("result:success"));
             }
             // else if probe response from worker, handle it accordingly
@@ -95,9 +94,9 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
                     } catch (UnsupportedEncodingException ex) {
                         Logger.getLogger(LateBindingTaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                     System.out.println("Responding with task duration: " + task.getDuration());
+                     //System.out.println("Responding with task duration: " + task.getDuration());
                 }
-                 response.setEntity(stringEntity);    
+                response.setEntity(stringEntity);    
             }
         }
     }

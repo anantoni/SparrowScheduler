@@ -5,10 +5,9 @@
  */
 package utils;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,13 +17,13 @@ import java.util.logging.Logger;
  * @author anantoni
  */
 public class JobMap {
-    Map<Integer, BlockingQueue<Task>> jobMap;
+    ConcurrentMap<Integer, BlockingQueue<Task>> jobMap;
     
     public JobMap() {
-        jobMap = new LinkedHashMap<>();
+        jobMap = new ConcurrentHashMap<>();
     }
     
-    public synchronized int putJob(int taskQuantity, int taskDuration) {
+    public int putJob(int taskQuantity, int taskDuration) {
         int jobID = AtomicCounter.increment();
         BlockingQueue tasksQueue = new LinkedBlockingQueue<>();
         for (int i =0; i<taskQuantity; i++) {
@@ -39,16 +38,7 @@ public class JobMap {
         return jobID;
     }
     
-    public synchronized int putTask(int jobID, Task task) {
-        jobMap.get(jobID).add(task);
-        return 0;
-    }
-    
-    public synchronized void removeJob(int jobID) {
-        jobMap.remove(jobID);
-    }
-
-    public synchronized Task getTask(int jobID) {
+    public Task getTask(int jobID) {
         if (jobMap.get(jobID).isEmpty())
             return null;
         return jobMap.get(jobID).remove();

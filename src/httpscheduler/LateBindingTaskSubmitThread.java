@@ -51,7 +51,7 @@ public class LateBindingTaskSubmitThread implements Runnable{
             } catch (UnsupportedEncodingException ex) {
                 Logger.getLogger(LateBindingTaskSubmitThread.class.getName()).log(Level.SEVERE, null, ex);
             }
-                System.out.println("Responding with task duration: " + task.getDuration());
+               //System.out.println("Responding with task duration: " + task.getDuration());
         }
         response.setEntity(stringEntity); 
     }
