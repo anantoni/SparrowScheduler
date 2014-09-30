@@ -71,7 +71,7 @@ public class LateBindingRequestHandler implements HttpRequestHandler {
             }
             // else if probe response from worker, handle it accordingly
             else if (parseResult.contains("probe-response")) {
-                StatsLog.writeToLog("received probe-response");
+                //StatsLog.writeToLog("received probe-response");
                 response.setStatusCode(HttpStatus.SC_OK);
                 String[] pieces = parseResult.split(":");
                 int jobID = Integer.parseInt(pieces[1]);

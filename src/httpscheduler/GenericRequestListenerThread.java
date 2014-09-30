@@ -47,7 +47,7 @@ class GenericRequestListenerThread extends Thread {
             this.serversocket = sf != null ? sf.createServerSocket(port) : new ServerSocket(port);
             this.httpService = httpService;
             // only 4 connections can run concurrently
-            connectionHandlerExecutor = Executors.newFixedThreadPool(100);
+            connectionHandlerExecutor = Executors.newFixedThreadPool(1000);
             //System.out.println("Request Listener Thread created");
     }
 

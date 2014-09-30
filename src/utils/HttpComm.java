@@ -6,26 +6,21 @@
 
 package utils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
         
 /**
@@ -33,7 +28,7 @@ import org.apache.http.util.EntityUtils;
  * @author anantoni
  */
 public class HttpComm {
-    static String hostname = "linux27.di.uoa.gr";
+    static String hostname = "linux26.di.uoa.gr";
     static Integer port = 51000;
     static final CloseableHttpClient httpClient;
     static {

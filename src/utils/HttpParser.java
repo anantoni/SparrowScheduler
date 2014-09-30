@@ -141,7 +141,7 @@ public class HttpParser {
                 System.err.println("Invalid argument - task quantity");
 
             int sJobID = jobMap.putJob(taskQuantity, taskDuration);
-            StatsLog.writeToLog("Accepted job #" + sJobID + " - number of tasks: " + taskQuantity + " - task duration: " + taskDuration);
+            //StatsLog.writeToLog("Accepted job #" + sJobID + " - number of tasks: " + taskQuantity + " - task duration: " + taskDuration);
             return "new-job:"+ Integer.toString(sJobID) + ":" + taskQuantity;
         }
         else {
