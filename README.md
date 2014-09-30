@@ -19,10 +19,14 @@ java -jar dist/SparrowClient
 Set list of available workers in config/workers.conf
 
 <h3>Scheduler Execution:</h3>
-java -jar dist/SparrowScheduler {<i>port</i>} --{<i>policy</i>}, <b>policy:</b> random/per-task/batch/late
+java -jar dist/SparrowScheduler {<i>port</i>} --{<i>policy</i>}, <b>policy:</b> random/per-task/batch/late<br>
+<br>
+e.g. java -jar dist/SparrowScheduler 51000 --batch
 
 <h3>Worker Execution:</h3>
-java -jar dist/SparrowWorker {<i>port</i>} --{<i>policy</i>}, <b>mode:</b> generic(suitable for random, per-task and batch policies)/late(suitable for late binding policy}
+java -jar dist/SparrowWorker {<i>port</i>} --{<i>policy</i>}, <b>mode:</b> generic(suitable for random, per-task and batch policies)/late(suitable for late binding policy}<br>
+<br>
+e.g. java -jar dist/SparrowWorker 52000 --generic
 
 
 
