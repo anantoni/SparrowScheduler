@@ -3,6 +3,7 @@ package httpscheduler;
 import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.NoHttpResponseException;
@@ -11,6 +12,7 @@ import policies.BatchSamplingSchedulingPolicy;
 import policies.SchedulingPolicy;
 import utils.HttpComm;
 import utils.Job;
+import utils.ProbePair;
 import utils.WorkerManager;
 
 /*
@@ -33,9 +35,14 @@ public class JobSubmitThread implements Runnable{
     
     @Override
     public void run() {
-        String workerURL = policy.selectBatchWorker(job.getTaskQuantiy());
+        List<ProbePair> results = policy.selectBatchWorker(job.getTaskQuantiy());
+        String workerURL ="";
         try {
-            HttpComm.sendJob(workerURL, String.valueOf(job.getTaskDuration()), String.valueOf(job.getTaskQuantiy()));
+            //HttpComm.sendJob(workerURL, String.valueOf(job.getTaskDuration()), String.valueOf(job.getTaskQuantiy()));
+            for (ProbePair pair : results) {
+                workerURL = pair.getWorkerURL();
+                HttpComm.sendTask(workerURL, String.valueOf(job.getTaskDuration()));
+            }
             Date dNow = new Date( );
             SimpleDateFormat ft = new SimpleDateFormat ("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
             //StatsLog.writeToLog(ft.format(dNow) + " Thread #" + Thread.currentThread().getId() + " Sending job #" + task.getJobID() + " task #" + task.getTaskID() + " to worker: " + workerURL);

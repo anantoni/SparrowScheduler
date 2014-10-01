@@ -7,6 +7,8 @@
 package utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,10 +50,17 @@ public class HttpComm {
         return s;
     }
     
-    public static Map<String, String> multiProbe( List<String> workersList ) throws Exception {
-        Map<String, String> results = new LinkedHashMap<>();
+    public static List<ProbePair> multiProbe( List<String> workersList ) throws Exception {
+       List<ProbePair> results = new LinkedList<>();
         for ( String workerURL : workersList ) 
-                results.put(workerURL, probe(workerURL));
+                results.add(new ProbePair(workerURL, Integer.parseInt(probe(workerURL))));
+        
+        Collections.sort(results, new Comparator<ProbePair>() {
+        @Override public int compare(ProbePair pair1, ProbePair pair2) {
+            return pair1.getProbeResult() - pair2.getProbeResult(); // Ascending
+        }
+
+        });
         return results;
     }
     

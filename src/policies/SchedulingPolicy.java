@@ -6,6 +6,9 @@
 
 package policies;
 
+import java.util.List;
+import utils.ProbePair;
+
 /**
  *
  * @author anantoni
@@ -13,5 +16,5 @@ package policies;
 public interface SchedulingPolicy {
     public void setWorkerManager();
     public String selectWorker();
-    public String selectBatchWorker(int size);
+    public List<ProbePair> selectBatchWorker(int size);
 }

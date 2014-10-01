@@ -6,8 +6,6 @@
 
 package policies;
 
-import utils.HttpComm;
-import utils.WorkerManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +13,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import utils.HttpComm;
+import utils.ProbePair;
+import utils.WorkerManager;
 
 /**
  *
@@ -83,7 +84,7 @@ public class PerTaskSamplingSchedulingPolicy implements SchedulingPolicy {
     }   
 
     @Override
-    public String selectBatchWorker(int size) {
+    public List<ProbePair> selectBatchWorker(int size) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
