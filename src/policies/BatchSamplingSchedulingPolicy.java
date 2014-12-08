@@ -19,10 +19,6 @@ import utils.WorkerManager;
  *
  * @author anantoni
  */
-/**
- *
- * @author anantoni
- */
 public class BatchSamplingSchedulingPolicy implements SchedulingPolicy {
         String selectedWorker;
 
